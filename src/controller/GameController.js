@@ -16,6 +16,8 @@ function GameController(options, gameView, gameModel) {
 	this.updateSpinButtonEnabled();
 
 	this.gameModel.on("stateChange", this.updateSpinButtonEnabled.bind(this));
+
+	this.updateKeypadFields();
 }
 
 module.exports = GameController;
@@ -129,4 +131,13 @@ GameController.prototype.playBetLineWin = function() {
 		this.winBetLineIndex++;
 		this.playBetLineWin();
 	}.bind(this));
+}
+
+/**
+ * Update keypad fields.
+ */
+GameController.prototype.updateKeypadFields = function() {
+	var keypad = this.gameView.getKeypadView();
+
+	keypad.setBalance(this.gameModel.getDisplayBalance());
 }

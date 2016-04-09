@@ -189,4 +189,11 @@ GameModel.prototype.getAccumulatedWinAmount = function(winIndex) {
 	return accumulated;
 }
 
+/**
+ * Get the balance that should be displayed depending on state.
+ */
+GameModel.prototype.getDisplayBalance = function() {
+	return "345";
+}
+
 module.exports = GameModel;

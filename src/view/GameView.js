@@ -105,3 +105,10 @@ GameView.prototype.getSymbolViewAt = function(reelIndex, rowIndex) {
 GameView.prototype.setSpinButtonEnabled = function(enabled) {
 	this.keypadView.setSpinButtonEnabled(enabled);
 }
+
+/**
+ * Get keypad view.
+ */
+GameView.prototype.getKeypadView = function() {
+	return this.keypadView;
+}

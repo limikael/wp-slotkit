@@ -93,3 +93,35 @@ KeypadView.prototype.updateFieldPositions = function() {
 KeypadView.prototype.setSpinButtonEnabled = function(enabled) {
 	this.spinButton.setEnabled(enabled);
 }
+
+/**
+ * Set bet.
+ */
+KeypadView.prototype.setBet = function(bet) {
+	this.betField.text = bet;
+	this.updateFieldPositions();
+}
+
+/**
+ * Set total bet.
+ */
+KeypadView.prototype.setTotalBet = function(totalBet) {
+	this.totalBetField.text = bet;
+	this.updateFieldPositions();
+}
+
+/**
+ * Set balance.
+ */
+KeypadView.prototype.setBalance = function(balance) {
+	this.balanceField.text = balance;
+	this.updateFieldPositions();
+}
+
+/**
+ * Set bet.
+ */
+KeypadView.prototype.setLines = function(lines) {
+	this.linesField.text = lines;
+	this.updateFieldPositions();
+}

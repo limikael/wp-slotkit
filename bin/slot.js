@@ -2463,6 +2463,8 @@ function GameController(options, gameView, gameModel) {
 	this.updateSpinButtonEnabled();
 
 	this.gameModel.on("stateChange", this.updateSpinButtonEnabled.bind(this));
+
+	this.updateKeypadFields();
 }
 
 module.exports = GameController;
@@ -2576,6 +2578,15 @@ GameController.prototype.playBetLineWin = function() {
 		this.winBetLineIndex++;
 		this.playBetLineWin();
 	}.bind(this));
+}
+
+/**
+ * Update keypad fields.
+ */
+GameController.prototype.updateKeypadFields = function() {
+	var keypad = this.gameView.getKeypadView();
+
+	keypad.setBalance(this.gameModel.getDisplayBalance());
 }
 },{"tinp":6}],11:[function(require,module,exports){
 var Xhr = require("../utils/Xhr");
@@ -2767,6 +2778,13 @@ GameModel.prototype.getAccumulatedWinAmount = function(winIndex) {
 		accumulated += this.betLineWins[winIndex].amount;
 
 	return accumulated;
+}
+
+/**
+ * Get the balance that should be displayed depending on state.
+ */
+GameModel.prototype.getDisplayBalance = function() {
+	return "345";
 }
 
 module.exports = GameModel;
@@ -3337,6 +3355,13 @@ GameView.prototype.getSymbolViewAt = function(reelIndex, rowIndex) {
 GameView.prototype.setSpinButtonEnabled = function(enabled) {
 	this.keypadView.setSpinButtonEnabled(enabled);
 }
+
+/**
+ * Get keypad view.
+ */
+GameView.prototype.getKeypadView = function() {
+	return this.keypadView;
+}
 },{"./BetLineButtonsView":16,"./BetLineView":17,"./KeypadView":20,"./ReelView":21,"./WinView":23,"inherits":1,"yaed":8}],20:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
@@ -3432,6 +3457,38 @@ KeypadView.prototype.updateFieldPositions = function() {
  */
 KeypadView.prototype.setSpinButtonEnabled = function(enabled) {
 	this.spinButton.setEnabled(enabled);
+}
+
+/**
+ * Set bet.
+ */
+KeypadView.prototype.setBet = function(bet) {
+	this.betField.text = bet;
+	this.updateFieldPositions();
+}
+
+/**
+ * Set total bet.
+ */
+KeypadView.prototype.setTotalBet = function(totalBet) {
+	this.totalBetField.text = bet;
+	this.updateFieldPositions();
+}
+
+/**
+ * Set balance.
+ */
+KeypadView.prototype.setBalance = function(balance) {
+	this.balanceField.text = balance;
+	this.updateFieldPositions();
+}
+
+/**
+ * Set bet.
+ */
+KeypadView.prototype.setLines = function(lines) {
+	this.linesField.text = lines;
+	this.updateFieldPositions();
 }
 },{"./ButtonHighlight":18,"inherits":1,"yaed":8}],21:[function(require,module,exports){
 var inherits = require("inherits");
