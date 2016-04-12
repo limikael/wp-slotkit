@@ -18,8 +18,7 @@ function slotkit_slotgame() {
 	$content.="<script src='".plugins_url()."/slotkit/bin/slot.js"."'></script>\n";
 	$content.="<script>\n";
 	$content.="var options={}\n";
-	$content.="options.spinUrl='".admin_url("admin-ajax.php")."?action=slotkit_spin';\n";
-	$content.="options.baseUrl='".plugins_url()."/slotkit/"."';\n";
+	$content.="options.initUrl='".admin_url("admin-ajax.php")."?action=slotkit_init';\n";
 	$content.="var app=new SlotApp(options);\n";
 	$content.="app.attachToElement('slotgame');\n";
 	$content.="</script>\n";
@@ -57,3 +56,15 @@ function slotkit_spin() {
 
 add_action("wp_ajax_slotkit_spin","slotkit_spin");
 add_action("wp_ajax_nopriv_slotkit_spin","slotkit_spin");
+
+function slotkit_init() {
+	echo json_encode(array(
+		"spinUrl"=>admin_url("admin-ajax.php")."?action=slotkit_spin",
+		"baseUrl"=>plugins_url()."/slotkit/",
+		"balance"=>1234
+	));
+	exit;
+}
+
+add_action("wp_ajax_slotkit_init","slotkit_init");
+add_action("wp_ajax_nopriv_slotkit_init","slotkit_init");

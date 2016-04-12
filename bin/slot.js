@@ -2338,88 +2338,14 @@ var TWEEN = require("tween.js");
  */
 function SlotApp(options) {
 	PixiApp.call(this, 1024, 576);
-
-	if (!options)
-		options = {};
-
-	this.options = options;
-
-	var optionDefaults = {
-		baseUrl: "",
-		background: "res/background.png",
-		foreground: "res/foreground.png",
-		symbolFormat: "res/symbols/sym#.png",
-		buttonHighlight: "res/highlight.png",
-		spinButtonPosition: [512, 480],
-		betIncPosition: [765, 484],
-		betDecPosition: [600, 484],
-		linesFieldPosition: [336, 483],
-		betFieldPosition: [684, 483],
-		balanceFieldPosition: [884, 456],
-		totalBetFieldPosition: [884, 525],
-		linesIncPosition: [418, 484],
-		linesDecPosition: [254, 484],
-		paytableButtonPosition: [140, 482],
-		reelSpacing: 171,
-		rowSpacing: 120,
-		gridOffsetX: 165,
-		gridOffsetY: 105,
-		numReels: 5,
-		numRows: 3,
-		numSymbols: 9,
-		reelSpeed: 1000,
-		numRandomSymbols: 3,
-		reelDelay: 200,
-		spinDuration: 3000,
-		winFieldX: 1024 / 2,
-		winFieldY: 200,
-		winPlateX: 1024 / 2,
-		winPlateY: 340,
-		betLineButtonsLeft: 50,
-		betLineButtonsRight: 970,
-		betLineButtonsTop: 70,
-		betLineButtonsDistance: 35,
-		betLines: [
-			[1, 1, 1, 1, 1],
-			[0, 0, 0, 0, 0],
-			[2, 2, 2, 2, 2],
-			[0, 1, 2, 1, 0],
-			[2, 1, 0, 1, 2],
-			[0, 0, 1, 0, 0],
-			[2, 2, 1, 2, 2],
-			[1, 2, 2, 2, 1],
-			[1, 0, 0, 0, 1],
-			[1, 0, 1, 0, 1],
-			[1, 2, 1, 2, 1],
-			[0, 1, 0, 1, 0],
-			[2, 1, 2, 1, 2],
-			[1, 1, 0, 1, 1],
-			[1, 1, 2, 1, 1],
-			[0, 1, 1, 1, 0],
-			[2, 1, 1, 1, 2],
-			[0, 1, 2, 2, 2],
-			[2, 1, 0, 0, 0],
-			[0, 2, 0, 2, 0]
-		]
-	}
-
-	for (var option in optionDefaults)
-		if (!this.options[option])
-			this.options[option] = optionDefaults[option];
-
-	for (var i = 0; i < this.options.numSymbols; i++) {
-		var symbolId = SymbolView.generateSymbolFrameId(options.symbolFormat, i);
-		PIXI.loader.add(symbolId, this.options.baseUrl + symbolId);
-	}
-
-	PIXI.loader.add(this.options.background, this.options.baseUrl + this.options.background);
-	PIXI.loader.add(this.options.foreground, this.options.baseUrl + this.options.foreground);
-	PIXI.loader.add(this.options.buttonHighlight, this.options.baseUrl + this.options.buttonHighlight);
-	PIXI.loader.load(this.onAssetsLoaded.bind(this));
-
+	this.on("frame", TWEEN.update);
 	this.matte = true;
 
-	this.on("frame", TWEEN.update);
+	this.gameModel = new GameModel(options);
+	this.gameModel.init().then(
+		this.onGameModelInit.bind(this),
+		this.onGameModelError.bind(this)
+	);
 }
 
 inherits(SlotApp, PixiApp);
@@ -2427,24 +2353,34 @@ module.exports = SlotApp;
 global.SlotApp = SlotApp;
 
 /**
- * Assets loaded.
+ * Game model initialized.
+ * Load assets.
  */
-SlotApp.prototype.onAssetsLoaded = function() {
-	this.gameModel = new GameModel(this.options);
-	this.run();
+SlotApp.prototype.onGameModelInit = function() {
+	this.options = this.gameModel.getOptions();
+
+	GameView.populateAssetLoader(this.options);
+	PIXI.loader.load(this.onAssetsLoaded.bind(this));
+}
+
+/**
+ * Game model error.
+ */
+SlotApp.prototype.onGameModelError = function() {
+	throw new Error("Model initialization error.");
 }
 
 /**
  * Run after assets loaded.
  */
-SlotApp.prototype.run = function() {
+SlotApp.prototype.onAssetsLoaded = function() {
 	this.gameView = new GameView(this.options);
 	this.addChild(this.gameView);
 
 	this.gameController = new GameController(this.options, this.gameView, this.gameModel);
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../controller/GameController":10,"../model/GameModel":11,"../view/GameView":19,"../view/SymbolView":22,"inherits":1,"pixiapp":3,"tween.js":7}],10:[function(require,module,exports){
+},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":20,"../view/SymbolView":23,"inherits":1,"pixiapp":3,"tween.js":7}],10:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -2589,9 +2525,69 @@ GameController.prototype.updateKeypadFields = function() {
 	keypad.setBalance(this.gameModel.getDisplayBalance());
 }
 },{"tinp":6}],11:[function(require,module,exports){
+module.exports = {
+	baseUrl: "",
+	background: "res/background.png",
+	foreground: "res/foreground.png",
+	symbolFormat: "res/symbols/sym#.png",
+	buttonHighlight: "res/highlight.png",
+	spinButtonPosition: [512, 480],
+	betIncPosition: [765, 484],
+	betDecPosition: [600, 484],
+	linesFieldPosition: [336, 483],
+	betFieldPosition: [684, 483],
+	balanceFieldPosition: [884, 456],
+	totalBetFieldPosition: [884, 525],
+	linesIncPosition: [418, 484],
+	linesDecPosition: [254, 484],
+	paytableButtonPosition: [140, 482],
+	reelSpacing: 171,
+	rowSpacing: 120,
+	gridOffsetX: 165,
+	gridOffsetY: 105,
+	numReels: 5,
+	numRows: 3,
+	numSymbols: 9,
+	reelSpeed: 1000,
+	numRandomSymbols: 3,
+	reelDelay: 200,
+	spinDuration: 3000,
+	winFieldX: 1024 / 2,
+	winFieldY: 200,
+	winPlateX: 1024 / 2,
+	winPlateY: 340,
+	betLineButtonsLeft: 50,
+	betLineButtonsRight: 970,
+	betLineButtonsTop: 70,
+	betLineButtonsDistance: 35,
+	betLines: [
+		[1, 1, 1, 1, 1],
+		[0, 0, 0, 0, 0],
+		[2, 2, 2, 2, 2],
+		[0, 1, 2, 1, 0],
+		[2, 1, 0, 1, 2],
+		[0, 0, 1, 0, 0],
+		[2, 2, 1, 2, 2],
+		[1, 2, 2, 2, 1],
+		[1, 0, 0, 0, 1],
+		[1, 0, 1, 0, 1],
+		[1, 2, 1, 2, 1],
+		[0, 1, 0, 1, 0],
+		[2, 1, 2, 1, 2],
+		[1, 1, 0, 1, 1],
+		[1, 1, 2, 1, 1],
+		[0, 1, 1, 1, 0],
+		[2, 1, 1, 1, 2],
+		[0, 1, 2, 2, 2],
+		[2, 1, 0, 0, 0],
+		[0, 2, 0, 2, 0]
+	]
+};
+},{}],12:[function(require,module,exports){
 var Xhr = require("../utils/Xhr");
 var Thenable = require("tinp");
 var EventDispatcher = require("yaed");
+var DefaultOptions = require("./DefaultOptions");
 
 /**
  * Contains the model for the game client.
@@ -2599,13 +2595,78 @@ var EventDispatcher = require("yaed");
  */
 function GameModel(options) {
 	this.options = options;
+	if (!this.options)
+		this.options = {};
+
 	this.state = "stopped";
 	this.spinThenable = null;
-	this.randomizeReelSymbols();
 	this.betLineWins = [];
 }
 
 EventDispatcher.init(GameModel);
+
+/**
+ * Initialize model.
+ */
+GameModel.prototype.init = function() {
+	if (this.initThenable)
+		throw new Error("Already initialized");
+
+	this.initThenable = new Thenable();
+
+	if (this.options.initUrl) {
+		this.initCall = new Xhr(this.options.initUrl);
+		this.initCall.setResponseEncoding(Xhr.JSON);
+		this.initCall.send().then(
+			this.onInitCallComplete.bind(this),
+			this.onInitCallError.bind(this)
+		);
+	} else {
+		this.postInit();
+		this.initThenable.resolve();
+	}
+
+	return this.initThenable;
+}
+
+/**
+ * Init call complete.
+ */
+GameModel.prototype.onInitCallComplete = function(initResponse) {
+	for (var option in initResponse)
+		this.options[option] = initResponse[option];
+
+	this.postInit();
+	this.initThenable.resolve();
+}
+
+/**
+ *
+ */
+GameModel.prototype.onInitCallError = function(e) {
+	this.initThenable.reject("Init call failed: " + e);
+}
+
+/**
+ * Get model options.
+ */
+GameModel.prototype.getOptions = function() {
+	return this.options;
+}
+
+/**
+ * Apply default options.
+ */
+GameModel.prototype.postInit = function() {
+	for (var option in DefaultOptions)
+		if (this.options[option] === undefined)
+			this.options[option] = DefaultOptions[option];
+
+	if (!this.reels || !this.reels.length)
+		this.randomizeReelSymbols();
+
+	this.balance = this.options.balance;
+}
 
 /**
  * Randomize the symbols on the reel.
@@ -2784,11 +2845,11 @@ GameModel.prototype.getAccumulatedWinAmount = function(winIndex) {
  * Get the balance that should be displayed depending on state.
  */
 GameModel.prototype.getDisplayBalance = function() {
-	return "345";
+	return this.balance;
 }
 
 module.exports = GameModel;
-},{"../utils/Xhr":14,"tinp":6,"yaed":8}],12:[function(require,module,exports){
+},{"../utils/Xhr":15,"./DefaultOptions":11,"tinp":6,"yaed":8}],13:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -2819,7 +2880,7 @@ Object.defineProperty(BrightnessFilter.prototype, "brightness", {
 		PIXI.filters.ColorMatrixFilter.prototype.brightness.call(this, this._brightness);
 	}
 });
-},{"inherits":1}],13:[function(require,module,exports){
+},{"inherits":1}],14:[function(require,module,exports){
 function PixiUtil() {}
 module.exports = PixiUtil;
 
@@ -2835,7 +2896,7 @@ PixiUtil.findParentOfType = function(child, parentType) {
 
 	return PixiUtil.findParentOfType(child.parent, parentType);
 }
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -2910,7 +2971,7 @@ Xhr.prototype.onRequestReadyStateChange = function() {
 
 	this.sendThenable.resolve(this.response);
 }
-},{"tinp":6}],15:[function(require,module,exports){
+},{"tinp":6}],16:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -2986,7 +3047,7 @@ BetLineButton.prototype.setColor = function(color) {
 BetLineButton.prototype.setHighlight = function(highlight) {
 	this.highlight.visible = highlight;
 }
-},{"inherits":1}],16:[function(require,module,exports){
+},{"inherits":1}],17:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var BetLineButton = require("./BetLineButton");
@@ -3082,7 +3143,7 @@ BetLineButtonsView.prototype.highlightBetLine = function(betLineIndex) {
 
 	this.buttons[betLineIndex].setHighlight(true);
 }
-},{"./BetLineButton":15,"inherits":1,"yaed":8}],17:[function(require,module,exports){
+},{"./BetLineButton":16,"inherits":1,"yaed":8}],18:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3169,7 +3230,7 @@ BetLineView.prototype.drawBetLine = function(betLine) {
 		);
 	}
 }
-},{"inherits":1}],18:[function(require,module,exports){
+},{"inherits":1}],19:[function(require,module,exports){
 var inherits = require("inherits");
 var BrightnessFilter = require("../utils/BrightnessFilter");
 var EventDispatcher = require("yaed");
@@ -3247,7 +3308,7 @@ ButtonHighlight.prototype.setEnabled = function(enabled) {
 		this.buttonMode = false;
 	}
 }
-},{"../utils/BrightnessFilter":12,"../utils/PixiUtil":13,"inherits":1,"yaed":8}],19:[function(require,module,exports){
+},{"../utils/BrightnessFilter":13,"../utils/PixiUtil":14,"inherits":1,"yaed":8}],20:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ReelView = require("./ReelView");
@@ -3255,6 +3316,7 @@ var BetLineButtonsView = require("./BetLineButtonsView");
 var BetLineView = require("./BetLineView");
 var WinView = require("./WinView");
 var KeypadView = require("./KeypadView");
+var SymbolView = require("./SymbolView");
 
 /**
  * @class GameView
@@ -3362,7 +3424,21 @@ GameView.prototype.setSpinButtonEnabled = function(enabled) {
 GameView.prototype.getKeypadView = function() {
 	return this.keypadView;
 }
-},{"./BetLineButtonsView":16,"./BetLineView":17,"./KeypadView":20,"./ReelView":21,"./WinView":23,"inherits":1,"yaed":8}],20:[function(require,module,exports){
+
+/**
+ * Populate pixi loader according to options.
+ */
+GameView.populateAssetLoader = function(options) {
+	for (var i = 0; i < options.numSymbols; i++) {
+		var symbolId = SymbolView.generateSymbolFrameId(options.symbolFormat, i);
+		PIXI.loader.add(symbolId, options.baseUrl + symbolId);
+	}
+
+	PIXI.loader.add(options.background, options.baseUrl + options.background);
+	PIXI.loader.add(options.foreground, options.baseUrl + options.foreground);
+	PIXI.loader.add(options.buttonHighlight, options.baseUrl + options.buttonHighlight);
+}
+},{"./BetLineButtonsView":17,"./BetLineView":18,"./KeypadView":21,"./ReelView":22,"./SymbolView":23,"./WinView":24,"inherits":1,"yaed":8}],21:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -3490,7 +3566,7 @@ KeypadView.prototype.setLines = function(lines) {
 	this.linesField.text = lines;
 	this.updateFieldPositions();
 }
-},{"./ButtonHighlight":18,"inherits":1,"yaed":8}],21:[function(require,module,exports){
+},{"./ButtonHighlight":19,"inherits":1,"yaed":8}],22:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 var PixiUtil = require("../utils/PixiUtil");
@@ -3678,7 +3754,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween.start();
 	}
 }
-},{"../utils/PixiUtil":13,"./SymbolView":22,"inherits":1,"tinp":6,"tween.js":7}],22:[function(require,module,exports){
+},{"../utils/PixiUtil":14,"./SymbolView":23,"inherits":1,"tinp":6,"tween.js":7}],23:[function(require,module,exports){
 var inherits = require("inherits");
 var TWEEN = require("tween.js");
 var Thenable = require("tinp");
@@ -3745,7 +3821,7 @@ SymbolView.prototype.playBetLineWin = function() {
 
 	return thenable;
 }
-},{"inherits":1,"tinp":6,"tween.js":7}],23:[function(require,module,exports){
+},{"inherits":1,"tinp":6,"tween.js":7}],24:[function(require,module,exports){
 var inherits = require("inherits");
 var Thenable = require("tinp");
 var TWEEN = require("tween.js");

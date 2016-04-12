@@ -1,6 +1,7 @@
 var Xhr = require("../utils/Xhr");
 var Thenable = require("tinp");
 var EventDispatcher = require("yaed");
+var DefaultOptions = require("./DefaultOptions");
 
 /**
  * Contains the model for the game client.
@@ -8,13 +9,78 @@ var EventDispatcher = require("yaed");
  */
 function GameModel(options) {
 	this.options = options;
+	if (!this.options)
+		this.options = {};
+
 	this.state = "stopped";
 	this.spinThenable = null;
-	this.randomizeReelSymbols();
 	this.betLineWins = [];
 }
 
 EventDispatcher.init(GameModel);
+
+/**
+ * Initialize model.
+ */
+GameModel.prototype.init = function() {
+	if (this.initThenable)
+		throw new Error("Already initialized");
+
+	this.initThenable = new Thenable();
+
+	if (this.options.initUrl) {
+		this.initCall = new Xhr(this.options.initUrl);
+		this.initCall.setResponseEncoding(Xhr.JSON);
+		this.initCall.send().then(
+			this.onInitCallComplete.bind(this),
+			this.onInitCallError.bind(this)
+		);
+	} else {
+		this.postInit();
+		this.initThenable.resolve();
+	}
+
+	return this.initThenable;
+}
+
+/**
+ * Init call complete.
+ */
+GameModel.prototype.onInitCallComplete = function(initResponse) {
+	for (var option in initResponse)
+		this.options[option] = initResponse[option];
+
+	this.postInit();
+	this.initThenable.resolve();
+}
+
+/**
+ *
+ */
+GameModel.prototype.onInitCallError = function(e) {
+	this.initThenable.reject("Init call failed: " + e);
+}
+
+/**
+ * Get model options.
+ */
+GameModel.prototype.getOptions = function() {
+	return this.options;
+}
+
+/**
+ * Apply default options.
+ */
+GameModel.prototype.postInit = function() {
+	for (var option in DefaultOptions)
+		if (this.options[option] === undefined)
+			this.options[option] = DefaultOptions[option];
+
+	if (!this.reels || !this.reels.length)
+		this.randomizeReelSymbols();
+
+	this.balance = this.options.balance;
+}
 
 /**
  * Randomize the symbols on the reel.
@@ -193,7 +259,7 @@ GameModel.prototype.getAccumulatedWinAmount = function(winIndex) {
  * Get the balance that should be displayed depending on state.
  */
 GameModel.prototype.getDisplayBalance = function() {
-	return "345";
+	return this.balance;
 }
 
 module.exports = GameModel;

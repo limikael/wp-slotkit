@@ -5,6 +5,7 @@ var BetLineButtonsView = require("./BetLineButtonsView");
 var BetLineView = require("./BetLineView");
 var WinView = require("./WinView");
 var KeypadView = require("./KeypadView");
+var SymbolView = require("./SymbolView");
 
 /**
  * @class GameView
@@ -111,4 +112,18 @@ GameView.prototype.setSpinButtonEnabled = function(enabled) {
  */
 GameView.prototype.getKeypadView = function() {
 	return this.keypadView;
+}
+
+/**
+ * Populate pixi loader according to options.
+ */
+GameView.populateAssetLoader = function(options) {
+	for (var i = 0; i < options.numSymbols; i++) {
+		var symbolId = SymbolView.generateSymbolFrameId(options.symbolFormat, i);
+		PIXI.loader.add(symbolId, options.baseUrl + symbolId);
+	}
+
+	PIXI.loader.add(options.background, options.baseUrl + options.background);
+	PIXI.loader.add(options.foreground, options.baseUrl + options.foreground);
+	PIXI.loader.add(options.buttonHighlight, options.baseUrl + options.buttonHighlight);
 }
