@@ -33,6 +33,9 @@ module.exports = {
 	betLineButtonsRight: 970,
 	betLineButtonsTop: 70,
 	betLineButtonsDistance: 35,
+	minBet: 1,
+	maxBet: 10,
+	betIncrease: 1,
 	betLines: [
 		[1, 1, 1, 1, 1],
 		[0, 0, 0, 0, 0],

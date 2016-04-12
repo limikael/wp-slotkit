@@ -149,4 +149,6 @@ GameController.prototype.updateKeypadFields = function() {
 
 	keypad.setBalance(this.gameModel.getDisplayBalance());
 	keypad.setTotalBet(this.gameModel.getTotalBet());
+	keypad.setLines(this.gameModel.getUserBetLines());
+	keypad.setBet(this.gameModel.getBet());
 }

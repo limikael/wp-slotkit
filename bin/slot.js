@@ -2532,6 +2532,8 @@ GameController.prototype.updateKeypadFields = function() {
 
 	keypad.setBalance(this.gameModel.getDisplayBalance());
 	keypad.setTotalBet(this.gameModel.getTotalBet());
+	keypad.setLines(this.gameModel.getUserBetLines());
+	keypad.setBet(this.gameModel.getBet());
 }
 },{"tinp":6}],11:[function(require,module,exports){
 module.exports = {
@@ -2569,6 +2571,9 @@ module.exports = {
 	betLineButtonsRight: 970,
 	betLineButtonsTop: 70,
 	betLineButtonsDistance: 35,
+	minBet: 1,
+	maxBet: 10,
+	betIncrease: 1,
 	betLines: [
 		[1, 1, 1, 1, 1],
 		[0, 0, 0, 0, 0],
@@ -2610,6 +2615,7 @@ function GameModel(options) {
 	this.state = "stopped";
 	this.spinThenable = null;
 	this.betLineWins = [];
+	this.userBetLines = 1;
 }
 
 EventDispatcher.init(GameModel);
@@ -2681,6 +2687,7 @@ GameModel.prototype.postInit = function() {
 	if (!this.reels || !this.reels.length)
 		this.randomizeReelSymbols();
 
+	this.bet = this.options.minBet;
 	this.balance = this.options.balance;
 }
 
@@ -2884,6 +2891,20 @@ GameModel.prototype.getDisplayBalance = function() {
 		default:
 			throw new Error("unknown state");
 	}
+}
+
+/**
+ * Get number of bet lines for the user bet.
+ */
+GameModel.prototype.getUserBetLines = function() {
+	return this.userBetLines;
+}
+
+/**
+ * Get current bet.
+ */
+GameModel.prototype.getBet = function() {
+	return this.bet;
 }
 
 module.exports = GameModel;
