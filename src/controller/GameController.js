@@ -16,6 +16,7 @@ function GameController(options, gameView, gameModel) {
 	this.updateSpinButtonEnabled();
 
 	this.gameModel.on("stateChange", this.updateSpinButtonEnabled.bind(this));
+	this.gameModel.on("displayBalanceChange", this.onDisplayBalanceChange.bind(this));
 
 	this.updateKeypadFields();
 }
@@ -134,10 +135,18 @@ GameController.prototype.playBetLineWin = function() {
 }
 
 /**
+ * The display balance was changed.
+ */
+GameController.prototype.onDisplayBalanceChange = function() {
+	this.updateKeypadFields();
+}
+
+/**
  * Update keypad fields.
  */
 GameController.prototype.updateKeypadFields = function() {
 	var keypad = this.gameView.getKeypadView();
 
 	keypad.setBalance(this.gameModel.getDisplayBalance());
+	keypad.setTotalBet(this.gameModel.getTotalBet());
 }

@@ -49,7 +49,9 @@ function slotkit_spin() {
 				"numSymbols"=>5,
 				"amount"=>456
 			)
-		)
+		),
+		"balance"=>555,
+		"spinBalance"=>1001
 	));
 	exit;
 }

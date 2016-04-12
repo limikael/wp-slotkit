@@ -106,7 +106,7 @@ KeypadView.prototype.setBet = function(bet) {
  * Set total bet.
  */
 KeypadView.prototype.setTotalBet = function(totalBet) {
-	this.totalBetField.text = bet;
+	this.totalBetField.text = totalBet;
 	this.updateFieldPositions();
 }
 

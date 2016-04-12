@@ -2399,6 +2399,7 @@ function GameController(options, gameView, gameModel) {
 	this.updateSpinButtonEnabled();
 
 	this.gameModel.on("stateChange", this.updateSpinButtonEnabled.bind(this));
+	this.gameModel.on("displayBalanceChange", this.onDisplayBalanceChange.bind(this));
 
 	this.updateKeypadFields();
 }
@@ -2517,12 +2518,20 @@ GameController.prototype.playBetLineWin = function() {
 }
 
 /**
+ * The display balance was changed.
+ */
+GameController.prototype.onDisplayBalanceChange = function() {
+	this.updateKeypadFields();
+}
+
+/**
  * Update keypad fields.
  */
 GameController.prototype.updateKeypadFields = function() {
 	var keypad = this.gameView.getKeypadView();
 
 	keypad.setBalance(this.gameModel.getDisplayBalance());
+	keypad.setTotalBet(this.gameModel.getTotalBet());
 }
 },{"tinp":6}],11:[function(require,module,exports){
 module.exports = {
@@ -2655,6 +2664,13 @@ GameModel.prototype.getOptions = function() {
 }
 
 /**
+ * Get the total bet
+ */
+GameModel.prototype.getTotalBet = function() {
+	return 50;
+}
+
+/**
  * Apply default options.
  */
 GameModel.prototype.postInit = function() {
@@ -2720,6 +2736,7 @@ GameModel.prototype.spin = function() {
 	);
 
 	this.trigger("stateChange");
+	this.trigger("displayBalanceChange");
 	return this.spinThenable;
 }
 
@@ -2754,10 +2771,13 @@ GameModel.prototype.onSpinRequestComplete = function(response) {
 	this.state = "spinResponse";
 	this.reels = response.reels;
 	this.betLineWins = response.betLineWins;
+	this.balance = response.balance;
+	this.spinBalance = response.spinBalance;
 
 	this.spinThenable.resolve();
 	this.spinThenable = null;
 	this.trigger("stateChange");
+	this.trigger("displayBalanceChange");
 }
 
 /**
@@ -2779,6 +2799,7 @@ GameModel.prototype.notifySpinStopping = function() {
 
 	this.state = "spinStopping";
 	this.trigger("stateChange");
+	this.trigger("displayBalanceChange");
 }
 
 /**
@@ -2791,6 +2812,7 @@ GameModel.prototype.notifySpinComplete = function() {
 
 	this.state = "stopped";
 	this.trigger("stateChange");
+	this.trigger("displayBalanceChange");
 }
 
 /**
@@ -2845,7 +2867,23 @@ GameModel.prototype.getAccumulatedWinAmount = function(winIndex) {
  * Get the balance that should be displayed depending on state.
  */
 GameModel.prototype.getDisplayBalance = function() {
-	return this.balance;
+	switch (this.state) {
+		case "stopped":
+			return this.balance;
+			break;
+
+		case "spinStarted":
+			return this.balance - this.getTotalBet();
+			break;
+
+		case "spinResponse":
+		case "spinStopping":
+			return this.spinBalance;
+			break;
+
+		default:
+			throw new Error("unknown state");
+	}
 }
 
 module.exports = GameModel;
@@ -3547,7 +3585,7 @@ KeypadView.prototype.setBet = function(bet) {
  * Set total bet.
  */
 KeypadView.prototype.setTotalBet = function(totalBet) {
-	this.totalBetField.text = bet;
+	this.totalBetField.text = totalBet;
 	this.updateFieldPositions();
 }
 
