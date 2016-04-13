@@ -63,7 +63,7 @@ function slotkit_init() {
 	echo json_encode(array(
 		"spinUrl"=>admin_url("admin-ajax.php")."?action=slotkit_spin",
 		"baseUrl"=>plugins_url()."/slotkit/",
-		"balance"=>1234
+		"balance"=>15
 	));
 	exit;
 }

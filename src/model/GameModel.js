@@ -88,7 +88,21 @@ GameModel.prototype.postInit = function() {
 		this.randomizeReelSymbols();
 
 	this.bet = this.options.minBet;
+	this.userBetLines = this.options.betLines.length;
 	this.balance = this.options.balance;
+
+	this.ensureBetInRange();
+}
+
+/**
+ * Ensure that the bet is not bigger than the balance.
+ */
+GameModel.prototype.ensureBetInRange = function() {
+	while (this.getTotalBet() > this.balance && this.userBetLines > 1)
+		this.userBetLines--;
+
+	while (this.getTotalBet() > this.balance && this.bet > this.options.minBet)
+		this.bet -= this.options.betIncrease;
 }
 
 /**
@@ -217,9 +231,12 @@ GameModel.prototype.notifySpinComplete = function() {
 	if (this.state != "spinResponse" && this.state != "spinStopping")
 		throw new Error("spin can't be complete in this state: " + this.state);
 
+	this.ensureBetInRange();
+
 	this.state = "stopped";
 	this.trigger("stateChange");
 	this.trigger("displayBalanceChange");
+	this.trigger("betChange");
 }
 
 /**
@@ -307,6 +324,7 @@ GameModel.prototype.setUserBetLines = function(userBetLines) {
 	if (this.state != "stopped")
 		throw new Error("state needs to be stopped to change bet lines");
 
+	var old = this.userBetLines;
 	this.userBetLines = userBetLines;
 
 	if (this.userBetLines > this.options.betLines.length)
@@ -314,6 +332,9 @@ GameModel.prototype.setUserBetLines = function(userBetLines) {
 
 	if (this.userBetLines < 1)
 		this.userBetLines = 1;
+
+	if (this.getTotalBet() > this.balance)
+		this.userBetLines = old;
 
 	this.trigger("betChange");
 }
@@ -329,6 +350,10 @@ GameModel.prototype.getBet = function() {
  * Set current bet.
  */
 GameModel.prototype.setBet = function(bet) {
+	if (this.state != "stopped")
+		throw new Error("state needs to be stopped to change bet");
+
+	var old = this.bet;
 	this.bet = bet;
 
 	if (this.bet > this.options.maxBet)
@@ -336,6 +361,9 @@ GameModel.prototype.setBet = function(bet) {
 
 	if (this.bet < this.options.minBet)
 		this.bet = this.options.minBet;
+
+	if (this.getTotalBet() > this.balance)
+		this.bet = old;
 
 	this.trigger("betChange");
 }
