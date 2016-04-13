@@ -30,6 +30,16 @@ function GameController(options, gameView, gameModel) {
 			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() - 1);
 	}.bind(this));
 
+	keypadView.on("betIncButtonClick", function() {
+		if (this.gameModel.getState() == "stopped")
+			this.gameModel.setBet(this.gameModel.getBet() + this.gameModel.getBetIncrease());
+	}.bind(this));
+
+	keypadView.on("betDecButtonClick", function() {
+		if (this.gameModel.getState() == "stopped")
+			this.gameModel.setBet(this.gameModel.getBet() - this.gameModel.getBetIncrease());
+	}.bind(this));
+
 	this.updateKeypadFields();
 }
 

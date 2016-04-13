@@ -73,7 +73,7 @@ GameModel.prototype.getOptions = function() {
  * Get the total bet
  */
 GameModel.prototype.getTotalBet = function() {
-	return 50;
+	return this.getBet() * this.getUserBetLines();
 }
 
 /**
@@ -323,6 +323,28 @@ GameModel.prototype.setUserBetLines = function(userBetLines) {
  */
 GameModel.prototype.getBet = function() {
 	return this.bet;
+}
+
+/**
+ * Set current bet.
+ */
+GameModel.prototype.setBet = function(bet) {
+	this.bet = bet;
+
+	if (this.bet > this.options.maxBet)
+		this.bet = this.options.maxBet;
+
+	if (this.bet < this.options.minBet)
+		this.bet = this.options.minBet;
+
+	this.trigger("betChange");
+}
+
+/**
+ * Get bet increase step.
+ */
+GameModel.prototype.getBetIncrease = function() {
+	return this.options.betIncrease;
 }
 
 module.exports = GameModel;

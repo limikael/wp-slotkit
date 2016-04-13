@@ -2413,6 +2413,16 @@ function GameController(options, gameView, gameModel) {
 			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() - 1);
 	}.bind(this));
 
+	keypadView.on("betIncButtonClick", function() {
+		if (this.gameModel.getState() == "stopped")
+			this.gameModel.setBet(this.gameModel.getBet() + this.gameModel.getBetIncrease());
+	}.bind(this));
+
+	keypadView.on("betDecButtonClick", function() {
+		if (this.gameModel.getState() == "stopped")
+			this.gameModel.setBet(this.gameModel.getBet() - this.gameModel.getBetIncrease());
+	}.bind(this));
+
 	this.updateKeypadFields();
 }
 
@@ -2698,7 +2708,7 @@ GameModel.prototype.getOptions = function() {
  * Get the total bet
  */
 GameModel.prototype.getTotalBet = function() {
-	return 50;
+	return this.getBet() * this.getUserBetLines();
 }
 
 /**
@@ -2948,6 +2958,28 @@ GameModel.prototype.setUserBetLines = function(userBetLines) {
  */
 GameModel.prototype.getBet = function() {
 	return this.bet;
+}
+
+/**
+ * Set current bet.
+ */
+GameModel.prototype.setBet = function(bet) {
+	this.bet = bet;
+
+	if (this.bet > this.options.maxBet)
+		this.bet = this.options.maxBet;
+
+	if (this.bet < this.options.minBet)
+		this.bet = this.options.minBet;
+
+	this.trigger("betChange");
+}
+
+/**
+ * Get bet increase step.
+ */
+GameModel.prototype.getBetIncrease = function() {
+	return this.options.betIncrease;
 }
 
 module.exports = GameModel;
