@@ -301,6 +301,24 @@ GameModel.prototype.getUserBetLines = function() {
 }
 
 /**
+ * Set number of bet lines for the current user bet.
+ */
+GameModel.prototype.setUserBetLines = function(userBetLines) {
+	if (this.state != "stopped")
+		throw new Error("state needs to be stopped to change bet lines");
+
+	this.userBetLines = userBetLines;
+
+	if (this.userBetLines > this.options.betLines.length)
+		this.userBetLines = this.options.betLines.length;
+
+	if (this.userBetLines < 1)
+		this.userBetLines = 1;
+
+	this.trigger("betChange");
+}
+
+/**
  * Get current bet.
  */
 GameModel.prototype.getBet = function() {

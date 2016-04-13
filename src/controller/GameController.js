@@ -13,10 +13,22 @@ function GameController(options, gameView, gameModel) {
 
 	this.gameView.on("spinButtonClick", this.onGameViewSpinButtonClick, this);
 	this.gameView.on("selectedBetLineChange", this.onSelectedBetLineChange, this);
-	this.updateSpinButtonEnabled();
+	this.updateKeypadButtonsEnabled();
 
-	this.gameModel.on("stateChange", this.updateSpinButtonEnabled.bind(this));
+	this.gameModel.on("stateChange", this.updateKeypadButtonsEnabled.bind(this));
 	this.gameModel.on("displayBalanceChange", this.onDisplayBalanceChange.bind(this));
+	this.gameModel.on("betChange", this.onBetChange.bind(this));
+
+	var keypadView = this.gameView.getKeypadView();
+	keypadView.on("linesIncButtonClick", function() {
+		if (this.gameModel.getState() == "stopped")
+			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() + 1);
+	}.bind(this));
+
+	keypadView.on("linesDecButtonClick", function() {
+		if (this.gameModel.getState() == "stopped")
+			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() - 1);
+	}.bind(this));
 
 	this.updateKeypadFields();
 }
@@ -34,16 +46,22 @@ GameController.prototype.onSelectedBetLineChange = function() {
 /**
  * Update enabled state of the spin button.
  */
-GameController.prototype.updateSpinButtonEnabled = function() {
+GameController.prototype.updateKeypadButtonsEnabled = function() {
 	switch (this.gameModel.getState()) {
 		case "stopped":
+			this.gameView.setSpinButtonEnabled(true);
+			this.gameView.setBetButtonsEnabled(true);
+			break;
+
 		case "spinResponse":
 			this.gameView.setSpinButtonEnabled(true);
+			this.gameView.setBetButtonsEnabled(false);
 			break;
 
 		case "spinStarted":
 		case "spinStopping":
 			this.gameView.setSpinButtonEnabled(false);
+			this.gameView.setBetButtonsEnabled(false);
 			break;
 
 		default:
@@ -138,6 +156,13 @@ GameController.prototype.playBetLineWin = function() {
  * The display balance was changed.
  */
 GameController.prototype.onDisplayBalanceChange = function() {
+	this.updateKeypadFields();
+}
+
+/**
+ * Bet change.
+ */
+GameController.prototype.onBetChange = function() {
 	this.updateKeypadFields();
 }
 

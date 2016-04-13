@@ -108,6 +108,13 @@ GameView.prototype.setSpinButtonEnabled = function(enabled) {
 }
 
 /**
+ * Set bet buttons enabled.
+ */
+GameView.prototype.setBetButtonsEnabled = function(enabled) {
+	this.keypadView.setBetButtonsEnabled(enabled);
+}
+
+/**
  * Get keypad view.
  */
 GameView.prototype.getKeypadView = function() {

@@ -95,6 +95,16 @@ KeypadView.prototype.setSpinButtonEnabled = function(enabled) {
 }
 
 /**
+ * Should the bet buttons be enabled?
+ */
+KeypadView.prototype.setBetButtonsEnabled = function(enabled) {
+	this.betIncButton.setEnabled(enabled);
+	this.betDecButton.setEnabled(enabled);
+	this.linesIncButton.setEnabled(enabled);
+	this.linesDecButton.setEnabled(enabled);
+}
+
+/**
  * Set bet.
  */
 KeypadView.prototype.setBet = function(bet) {

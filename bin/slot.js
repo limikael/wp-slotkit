@@ -2396,10 +2396,22 @@ function GameController(options, gameView, gameModel) {
 
 	this.gameView.on("spinButtonClick", this.onGameViewSpinButtonClick, this);
 	this.gameView.on("selectedBetLineChange", this.onSelectedBetLineChange, this);
-	this.updateSpinButtonEnabled();
+	this.updateKeypadButtonsEnabled();
 
-	this.gameModel.on("stateChange", this.updateSpinButtonEnabled.bind(this));
+	this.gameModel.on("stateChange", this.updateKeypadButtonsEnabled.bind(this));
 	this.gameModel.on("displayBalanceChange", this.onDisplayBalanceChange.bind(this));
+	this.gameModel.on("betChange", this.onBetChange.bind(this));
+
+	var keypadView = this.gameView.getKeypadView();
+	keypadView.on("linesIncButtonClick", function() {
+		if (this.gameModel.getState() == "stopped")
+			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() + 1);
+	}.bind(this));
+
+	keypadView.on("linesDecButtonClick", function() {
+		if (this.gameModel.getState() == "stopped")
+			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() - 1);
+	}.bind(this));
 
 	this.updateKeypadFields();
 }
@@ -2417,16 +2429,22 @@ GameController.prototype.onSelectedBetLineChange = function() {
 /**
  * Update enabled state of the spin button.
  */
-GameController.prototype.updateSpinButtonEnabled = function() {
+GameController.prototype.updateKeypadButtonsEnabled = function() {
 	switch (this.gameModel.getState()) {
 		case "stopped":
+			this.gameView.setSpinButtonEnabled(true);
+			this.gameView.setBetButtonsEnabled(true);
+			break;
+
 		case "spinResponse":
 			this.gameView.setSpinButtonEnabled(true);
+			this.gameView.setBetButtonsEnabled(false);
 			break;
 
 		case "spinStarted":
 		case "spinStopping":
 			this.gameView.setSpinButtonEnabled(false);
+			this.gameView.setBetButtonsEnabled(false);
 			break;
 
 		default:
@@ -2521,6 +2539,13 @@ GameController.prototype.playBetLineWin = function() {
  * The display balance was changed.
  */
 GameController.prototype.onDisplayBalanceChange = function() {
+	this.updateKeypadFields();
+}
+
+/**
+ * Bet change.
+ */
+GameController.prototype.onBetChange = function() {
 	this.updateKeypadFields();
 }
 
@@ -2898,6 +2923,24 @@ GameModel.prototype.getDisplayBalance = function() {
  */
 GameModel.prototype.getUserBetLines = function() {
 	return this.userBetLines;
+}
+
+/**
+ * Set number of bet lines for the current user bet.
+ */
+GameModel.prototype.setUserBetLines = function(userBetLines) {
+	if (this.state != "stopped")
+		throw new Error("state needs to be stopped to change bet lines");
+
+	this.userBetLines = userBetLines;
+
+	if (this.userBetLines > this.options.betLines.length)
+		this.userBetLines = this.options.betLines.length;
+
+	if (this.userBetLines < 1)
+		this.userBetLines = 1;
+
+	this.trigger("betChange");
 }
 
 /**
@@ -3478,6 +3521,13 @@ GameView.prototype.setSpinButtonEnabled = function(enabled) {
 }
 
 /**
+ * Set bet buttons enabled.
+ */
+GameView.prototype.setBetButtonsEnabled = function(enabled) {
+	this.keypadView.setBetButtonsEnabled(enabled);
+}
+
+/**
  * Get keypad view.
  */
 GameView.prototype.getKeypadView = function() {
@@ -3592,6 +3642,16 @@ KeypadView.prototype.updateFieldPositions = function() {
  */
 KeypadView.prototype.setSpinButtonEnabled = function(enabled) {
 	this.spinButton.setEnabled(enabled);
+}
+
+/**
+ * Should the bet buttons be enabled?
+ */
+KeypadView.prototype.setBetButtonsEnabled = function(enabled) {
+	this.betIncButton.setEnabled(enabled);
+	this.betDecButton.setEnabled(enabled);
+	this.linesIncButton.setEnabled(enabled);
+	this.linesDecButton.setEnabled(enabled);
 }
 
 /**
