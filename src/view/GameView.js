@@ -6,6 +6,7 @@ var BetLineView = require("./BetLineView");
 var WinView = require("./WinView");
 var KeypadView = require("./KeypadView");
 var SymbolView = require("./SymbolView");
+var PaytableView = require("./PaytableView");
 
 /**
  * @class GameView
@@ -44,6 +45,9 @@ function GameView(options) {
 
 	this.winView = new WinView(this.options);
 	this.addChild(this.winView);
+
+	this.paytableView = new PaytableView(this.options);
+	this.addChild(this.paytableView);
 }
 
 inherits(GameView, PIXI.Container);
@@ -122,6 +126,13 @@ GameView.prototype.getKeypadView = function() {
 }
 
 /**
+ * Paytable view.
+ */
+GameView.prototype.getPaytableView = function() {
+	return this.paytableView;
+}
+
+/**
  * Populate pixi loader according to options.
  */
 GameView.populateAssetLoader = function(options) {
@@ -132,5 +143,6 @@ GameView.populateAssetLoader = function(options) {
 
 	PIXI.loader.add(options.background, options.baseUrl + options.background);
 	PIXI.loader.add(options.foreground, options.baseUrl + options.foreground);
+	PIXI.loader.add(options.paytableBackground, options.baseUrl + options.paytableBackground);
 	PIXI.loader.add(options.buttonHighlight, options.baseUrl + options.buttonHighlight);
 }

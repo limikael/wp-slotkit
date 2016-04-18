@@ -4,6 +4,7 @@ module.exports = {
 	foreground: "res/foreground.png",
 	symbolFormat: "res/symbols/sym#.png",
 	buttonHighlight: "res/highlight.png",
+	paytableBackground: "res/paytable.png",
 	spinButtonPosition: [512, 480],
 	betIncPosition: [765, 484],
 	betDecPosition: [600, 484],
@@ -57,5 +58,8 @@ module.exports = {
 		[0, 1, 2, 2, 2],
 		[2, 1, 0, 0, 0],
 		[0, 2, 0, 2, 0]
-	]
+	],
+	paytable: {
+		"0": [1, 2, 4]
+	}
 };

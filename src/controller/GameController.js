@@ -40,7 +40,13 @@ function GameController(options, gameView, gameModel) {
 			this.gameModel.setBet(this.gameModel.getBet() - this.gameModel.getBetIncrease());
 	}.bind(this));
 
+	keypadView.on("paytableButtonClick", function() {
+		this.gameView.getPaytableView().toggleShown();
+	}.bind(this));
+
 	this.updateKeypadFields();
+
+	this.gameView.getPaytableView().hide();
 }
 
 module.exports = GameController;
@@ -87,6 +93,7 @@ GameController.prototype.onGameViewSpinButtonClick = function() {
 
 	switch (this.gameModel.getState()) {
 		case "stopped":
+			this.gameView.getPaytableView().hide();
 			this.gameView.getWinView().resetAccumulatedWin();
 			for (var i = 0; i < this.options.numReels; i++)
 				this.gameView.getReelViewAt(i).startSpin();
