@@ -2380,7 +2380,7 @@ SlotApp.prototype.onAssetsLoaded = function() {
 	this.gameController = new GameController(this.options, this.gameView, this.gameModel);
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":20,"../view/SymbolView":24,"inherits":1,"pixiapp":3,"tween.js":7}],10:[function(require,module,exports){
+},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":20,"../view/SymbolView":25,"inherits":1,"pixiapp":3,"tween.js":7}],10:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -2599,6 +2599,10 @@ module.exports = {
 	rowSpacing: 120,
 	gridOffsetX: 165,
 	gridOffsetY: 105,
+	paytableOffsetX: 100,
+	paytableOffsetY: 75,
+	paytableRowSpacing: 150,
+	paytableColSpacing: 300,
 	numReels: 5,
 	numRows: 3,
 	numSymbols: 9,
@@ -3630,7 +3634,7 @@ GameView.populateAssetLoader = function(options) {
 	PIXI.loader.add(options.paytableBackground, options.baseUrl + options.paytableBackground);
 	PIXI.loader.add(options.buttonHighlight, options.baseUrl + options.buttonHighlight);
 }
-},{"./BetLineButtonsView":17,"./BetLineView":18,"./KeypadView":21,"./PaytableView":22,"./ReelView":23,"./SymbolView":24,"./WinView":25,"inherits":1,"yaed":8}],21:[function(require,module,exports){
+},{"./BetLineButtonsView":17,"./BetLineView":18,"./KeypadView":21,"./PaytableView":23,"./ReelView":24,"./SymbolView":25,"./WinView":26,"inherits":1,"yaed":8}],21:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -3770,7 +3774,67 @@ KeypadView.prototype.setLines = function(lines) {
 }
 },{"./ButtonHighlight":19,"inherits":1,"yaed":8}],22:[function(require,module,exports){
 var inherits = require("inherits");
+var SymbolView = require("./SymbolView");
 
+/**
+ * Shows one entry for the paytable.
+ */
+function PaytableEntryView(options) {
+	PIXI.Container.call(this);
+	this.options = options;
+
+	var style = {
+		font: "bold 24px sans",
+		dropShadow: true,
+		fill: "#ffffff",
+		dropShadowColor: "#000000",
+		dropShadowDistance: 2,
+		dropShadowAngle: Math.PI / 4
+	};
+
+	this.payoutField = new PIXI.Text("3 - 1x\n4 - 2x\n5 - 3x", style);
+	this.addChild(this.payoutField);
+}
+
+inherits(PaytableEntryView, PIXI.Container);
+module.exports = PaytableEntryView;
+
+/**
+ * Set symbol id.
+ */
+PaytableEntryView.prototype.setSymbolId = function(symbolId) {
+	if (this.symbol)
+		this.removeChild(this.symbol);
+
+	var imageId = SymbolView.generateSymbolFrameId(this.options.baseUrl + this.options.symbolFormat, symbolId);
+	this.symbol = PIXI.Sprite.fromImage(imageId);
+	this.addChild(this.symbol);
+
+	this.updateFieldPosition();
+}
+
+/**
+ * Set payouts.
+ */
+PaytableEntryView.prototype.setPayouts = function(payouts) {
+	this.updateFieldPosition();
+}
+
+/**
+ * Update field position.
+ * @private
+ */
+PaytableEntryView.prototype.updateFieldPosition = function() {
+	this.payoutField.x = this.symbol.width + 20;
+	this.payoutField.y = (this.symbol.height - this.payoutField.height) / 2;
+}
+},{"./SymbolView":25,"inherits":1}],23:[function(require,module,exports){
+var inherits = require("inherits");
+var PaytableEntryView = require("./PaytableEntryView");
+
+/**
+ * Show the paytable.
+ */
 function PaytableView(options) {
 	PIXI.Container.call(this);
 
@@ -3778,15 +3842,23 @@ function PaytableView(options) {
 
 	this.background = PIXI.Sprite.fromFrame(this.options.baseUrl + this.options.paytableBackground);
 	this.addChild(this.background);
+
+	this.createEntries();
 }
 
 inherits(PaytableView, PIXI.Container);
 module.exports = PaytableView;
 
+/**
+ * Hide the paytable.
+ */
 PaytableView.prototype.hide = function() {
 	this.visible = false;
 }
 
+/**
+ * Toggle visibility of the paytable.
+ */
 PaytableView.prototype.toggleShown = function() {
 	if (this.visible)
 		this.visible = false;
@@ -3794,7 +3866,29 @@ PaytableView.prototype.toggleShown = function() {
 	else
 		this.visible = true;
 }
-},{"inherits":1}],23:[function(require,module,exports){
+
+/**
+ * Create entries.
+ */
+PaytableView.prototype.createEntries = function() {
+	var x = 0;
+	var y = 0;
+
+	for (var i = 0; i < 10; i++) {
+		var entry = new PaytableEntryView(this.options);
+		entry.x = this.options.paytableOffsetX + x * this.options.paytableColSpacing;
+		entry.y = this.options.paytableOffsetY + y * this.options.paytableRowSpacing;
+		entry.setSymbolId(0);
+		this.addChild(entry);
+
+		x++;
+		if (x > 3) {
+			x = 0;
+			y++;
+		}
+	}
+}
+},{"./PaytableEntryView":22,"inherits":1}],24:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 var PixiUtil = require("../utils/PixiUtil");
@@ -3982,7 +4076,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween.start();
 	}
 }
-},{"../utils/PixiUtil":14,"./SymbolView":24,"inherits":1,"tinp":6,"tween.js":7}],24:[function(require,module,exports){
+},{"../utils/PixiUtil":14,"./SymbolView":25,"inherits":1,"tinp":6,"tween.js":7}],25:[function(require,module,exports){
 var inherits = require("inherits");
 var TWEEN = require("tween.js");
 var Thenable = require("tinp");
@@ -4049,7 +4143,7 @@ SymbolView.prototype.playBetLineWin = function() {
 
 	return thenable;
 }
-},{"inherits":1,"tinp":6,"tween.js":7}],25:[function(require,module,exports){
+},{"inherits":1,"tinp":6,"tween.js":7}],26:[function(require,module,exports){
 var inherits = require("inherits");
 var Thenable = require("tinp");
 var TWEEN = require("tween.js");
