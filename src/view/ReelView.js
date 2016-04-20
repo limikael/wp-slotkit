@@ -22,8 +22,8 @@ module.exports = ReelView;
 
 ReelView.prototype.setReelIndex = function(index) {
 	this.reelIndex = index;
-	this.x = this.options.gridOffsetX + this.reelIndex * this.options.reelSpacing;
-	this.y = this.options.gridOffsetY;
+	this.x = this.options.gridOffset[0] + this.reelIndex * this.options.reelSpacing;
+	this.y = this.options.gridOffset[1];
 
 	this.symbolHolder = new PIXI.Container();
 	this.addChild(this.symbolHolder);

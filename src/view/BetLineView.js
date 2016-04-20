@@ -74,13 +74,13 @@ BetLineView.prototype.drawBetLine = function(betLine) {
 	var g = this.betLineGraphics;
 
 	g.moveTo(
-		this.options.gridOffsetX,
-		this.options.gridOffsetY + betLine[0] * this.options.rowSpacing);
+		this.options.gridOffset[0],
+		this.options.gridOffset[1] + betLine[0] * this.options.rowSpacing);
 
 	for (var i = 1; i < this.options.numReels; i++) {
 		g.lineTo(
-			this.options.gridOffsetX + i * this.options.reelSpacing,
-			this.options.gridOffsetY + betLine[i] * this.options.rowSpacing
+			this.options.gridOffset[0] + i * this.options.reelSpacing,
+			this.options.gridOffset[1] + betLine[i] * this.options.rowSpacing
 		);
 	}
 }

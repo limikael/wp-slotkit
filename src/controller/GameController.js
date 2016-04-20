@@ -46,7 +46,16 @@ function GameController(options, gameView, gameModel) {
 
 	this.updateKeypadFields();
 
-	this.gameView.getPaytableView().hide();
+	var paytableView = this.gameView.getPaytableView();
+	paytableView.on("nextButtonClick", function() {
+		paytableView.setCurrentPageIndex(paytableView.getCurrentPageIndex() + 1);
+	});
+
+	paytableView.on("prevButtonClick", function() {
+		paytableView.setCurrentPageIndex(paytableView.getCurrentPageIndex() - 1);
+	});
+
+	paytableView.hide();
 }
 
 module.exports = GameController;

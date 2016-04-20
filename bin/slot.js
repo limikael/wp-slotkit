@@ -2429,7 +2429,16 @@ function GameController(options, gameView, gameModel) {
 
 	this.updateKeypadFields();
 
-	this.gameView.getPaytableView().hide();
+	var paytableView = this.gameView.getPaytableView();
+	paytableView.on("nextButtonClick", function() {
+		paytableView.setCurrentPageIndex(paytableView.getCurrentPageIndex() + 1);
+	});
+
+	paytableView.on("prevButtonClick", function() {
+		paytableView.setCurrentPageIndex(paytableView.getCurrentPageIndex() - 1);
+	});
+
+	paytableView.hide();
 }
 
 module.exports = GameController;
@@ -2595,14 +2604,15 @@ module.exports = {
 	linesIncPosition: [418, 484],
 	linesDecPosition: [254, 484],
 	paytableButtonPosition: [140, 482],
-	reelSpacing: 171,
-	rowSpacing: 120,
-	gridOffsetX: 165,
-	gridOffsetY: 105,
-	paytableOffsetX: 100,
-	paytableOffsetY: 75,
+	paytableOffset: [100, 75],
 	paytableRowSpacing: 150,
 	paytableColSpacing: 300,
+	paytablePrevButtonPosition: [416, 367],
+	paytableNextButtonPosition: [603, 367],
+	paytablePageFieldPosition: [510, 367],
+	reelSpacing: 171,
+	rowSpacing: 120,
+	gridOffset: [165, 105],
 	numReels: 5,
 	numRows: 3,
 	numSymbols: 9,
@@ -3397,13 +3407,13 @@ BetLineView.prototype.drawBetLine = function(betLine) {
 	var g = this.betLineGraphics;
 
 	g.moveTo(
-		this.options.gridOffsetX,
-		this.options.gridOffsetY + betLine[0] * this.options.rowSpacing);
+		this.options.gridOffset[0],
+		this.options.gridOffset[1] + betLine[0] * this.options.rowSpacing);
 
 	for (var i = 1; i < this.options.numReels; i++) {
 		g.lineTo(
-			this.options.gridOffsetX + i * this.options.reelSpacing,
-			this.options.gridOffsetY + betLine[i] * this.options.rowSpacing
+			this.options.gridOffset[0] + i * this.options.reelSpacing,
+			this.options.gridOffset[1] + betLine[i] * this.options.rowSpacing
 		);
 	}
 }
@@ -3831,6 +3841,8 @@ PaytableEntryView.prototype.updateFieldPosition = function() {
 },{"./SymbolView":25,"inherits":1}],23:[function(require,module,exports){
 var inherits = require("inherits");
 var PaytableEntryView = require("./PaytableEntryView");
+var ButtonHighlight = require("./ButtonHighlight");
+var EventDispatcher = require("yaed");
 
 /**
  * Show the paytable.
@@ -3843,10 +3855,37 @@ function PaytableView(options) {
 	this.background = PIXI.Sprite.fromFrame(this.options.baseUrl + this.options.paytableBackground);
 	this.addChild(this.background);
 
+	this.nextButton = new ButtonHighlight(this.options, 20);
+	this.nextButton.x = this.options.paytableNextButtonPosition[0];
+	this.nextButton.y = this.options.paytableNextButtonPosition[1];
+	this.nextButton.on("click", this.trigger.bind(this, "nextButtonClick"))
+	this.addChild(this.nextButton);
+
+	this.prevButton = new ButtonHighlight(this.options, 20);
+	this.prevButton.x = this.options.paytablePrevButtonPosition[0];
+	this.prevButton.y = this.options.paytablePrevButtonPosition[1];
+	this.prevButton.on("click", this.trigger.bind(this, "prevButtonClick"))
+	this.addChild(this.prevButton);
+
+	var style = {
+		font: "bold 24px sans",
+		dropShadow: true,
+		fill: "#ffffff",
+		dropShadowColor: "#000000",
+		dropShadowDistance: 2,
+		dropShadowAngle: Math.PI / 4
+	};
+
+	this.pageField = new PIXI.Text("1/2", style);
+	this.pageField.x = this.options.paytablePageFieldPosition[0] - this.pageField.width / 2;
+	this.pageField.y = this.options.paytablePageFieldPosition[1] - this.pageField.height / 2;
+	this.addChild(this.pageField);
+
 	this.createEntries();
 }
 
 inherits(PaytableView, PIXI.Container);
+EventDispatcher.init(PaytableView);
 module.exports = PaytableView;
 
 /**
@@ -3873,22 +3912,72 @@ PaytableView.prototype.toggleShown = function() {
 PaytableView.prototype.createEntries = function() {
 	var x = 0;
 	var y = 0;
+	var page;
 
-	for (var i = 0; i < 10; i++) {
+	this.pages = [];
+
+	for (var i = 0; i < this.options.numSymbols; i++) {
+		if (!page) {
+			page = new PIXI.Container();
+			this.pages.push(page);
+			this.addChild(page);
+		}
+
 		var entry = new PaytableEntryView(this.options);
-		entry.x = this.options.paytableOffsetX + x * this.options.paytableColSpacing;
-		entry.y = this.options.paytableOffsetY + y * this.options.paytableRowSpacing;
-		entry.setSymbolId(0);
-		this.addChild(entry);
+		entry.x = this.options.paytableOffset[0] + x * this.options.paytableColSpacing;
+		entry.y = this.options.paytableOffset[1] + y * this.options.paytableRowSpacing;
+		entry.setSymbolId(i);
+		page.addChild(entry);
 
 		x++;
-		if (x > 3) {
+		if (x > 2) {
 			x = 0;
 			y++;
+
+			if (y > 1) {
+				y = 0;
+				page = null;
+			}
 		}
 	}
+
+	this.currentPageIndex = 0;
+	this.updateCurrentPage();
 }
-},{"./PaytableEntryView":22,"inherits":1}],24:[function(require,module,exports){
+
+/**
+ * Update current page.
+ */
+PaytableView.prototype.updateCurrentPage = function() {
+	for (var i = 0; i < this.pages.length; i++)
+		this.pages[i].visible = false;
+
+	this.pages[this.currentPageIndex].visible = true;
+	this.pageField.text = (this.currentPageIndex + 1) + "/" + this.pages.length;
+}
+
+/**
+ * Set the current page index.
+ */
+PaytableView.prototype.setCurrentPageIndex = function(index) {
+	this.currentPageIndex = index;
+
+	if (this.currentPageIndex < 0)
+		this.currentPageIndex = 0;
+
+	if (this.currentPageIndex >= this.pages.length)
+		this.currentPageIndex = this.pages.length - 1;
+
+	this.updateCurrentPage();
+}
+
+/**
+ * Get current page index.
+ */
+PaytableView.prototype.getCurrentPageIndex = function() {
+	return this.currentPageIndex;
+}
+},{"./ButtonHighlight":19,"./PaytableEntryView":22,"inherits":1,"yaed":8}],24:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 var PixiUtil = require("../utils/PixiUtil");
@@ -3913,8 +4002,8 @@ module.exports = ReelView;
 
 ReelView.prototype.setReelIndex = function(index) {
 	this.reelIndex = index;
-	this.x = this.options.gridOffsetX + this.reelIndex * this.options.reelSpacing;
-	this.y = this.options.gridOffsetY;
+	this.x = this.options.gridOffset[0] + this.reelIndex * this.options.reelSpacing;
+	this.y = this.options.gridOffset[1];
 
 	this.symbolHolder = new PIXI.Container();
 	this.addChild(this.symbolHolder);
