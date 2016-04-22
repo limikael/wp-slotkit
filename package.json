@@ -9,11 +9,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "bundleloader": "0.0.4",
+    "bundleloader": "0.0.7",
     "grunt": "^0.4.5",
     "grunt-browserify": "^4.0.1",
     "pixi.js": "^3.0.9",
-    "pixiapp": "^3.1.1",
+    "pixiapp": "3.2.1",
     "sprintf-js": "^1.0.3",
     "tinp": "0.0.5",
     "tween.js": "^16.3.4",

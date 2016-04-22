@@ -5,6 +5,7 @@ var GameController = require("../controller/GameController");
 var GameModel = require("../model/GameModel");
 var SymbolView = require("../view/SymbolView");
 var TWEEN = require("tween.js");
+var EventDispatcher = require("yaed");
 
 /**
  * The app.
@@ -22,6 +23,7 @@ function SlotApp(options) {
 }
 
 inherits(SlotApp, PixiApp);
+EventDispatcher.init(SlotApp);
 module.exports = SlotApp;
 global.SlotApp = SlotApp;
 
@@ -33,6 +35,8 @@ SlotApp.prototype.onGameModelInit = function() {
 	this.options = this.gameModel.getOptions();
 
 	GameView.populateAssetLoader(this.options);
+	PIXI.loader.on("progress", this.onAssetsProgress.bind(this));
+	PIXI.loader.on("error", this.onAssetsError.bind(this));
 	PIXI.loader.load(this.onAssetsLoaded.bind(this));
 }
 
@@ -47,8 +51,31 @@ SlotApp.prototype.onGameModelError = function() {
  * Run after assets loaded.
  */
 SlotApp.prototype.onAssetsLoaded = function() {
+	console.log("assets loaded");
+
 	this.gameView = new GameView(this.options);
 	this.addChild(this.gameView);
 
 	this.gameController = new GameController(this.options, this.gameView, this.gameModel);
+	setTimeout(function() {
+		if (this.haveError)
+			return;
+
+		this.trigger("complete");
+	}.bind(this), 0);
+}
+
+/**
+ * Assets progress.
+ */
+SlotApp.prototype.onAssetsProgress = function(ev) {
+	this.trigger("progress", ev.progress);
+}
+
+/**
+ * Assets progress.
+ */
+SlotApp.prototype.onAssetsError = function(ev) {
+	this.haveError = true;
+	this.trigger("error", "ERROR LOADING ASSETS");
 }

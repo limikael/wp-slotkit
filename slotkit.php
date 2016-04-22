@@ -8,19 +8,14 @@ Version: 0.0.1
 */
 
 function slotkit_slotgame() {
-	//wp_enqueue_script("pixi",plugins_url()."/slotkit/bin/pixi.min.js");
-	//wp_enqueue_script("slot",plugins_url()."/slotkit/bin/slot.js");
-	//wp_enqueue_script("slotkit",plugins_url()."/slotkit/slotkit.js");
+	wp_enqueue_script("bundleloader",plugins_url()."/slotkit/bin/bundleloader.min.js");
+	wp_enqueue_script("wpslot",plugins_url()."/slotkit/bin/wpslot.js");
 
 	$content="";
-	$content.="<div id='slotgame' style='width:100%; height:500px; background:#ff0000; position:relative'></div>\n";
-	$content.="<script src='".plugins_url()."/slotkit/bin/pixi.min.js"."'></script>\n";
-	$content.="<script src='".plugins_url()."/slotkit/bin/slot.js"."'></script>\n";
+	$content.="<div id='slotgame' style='width:100%; height:500px; position:relative'></div>\n";
 	$content.="<script>\n";
-	$content.="var options={}\n";
-	$content.="options.initUrl='".admin_url("admin-ajax.php")."?action=slotkit_init';\n";
-	$content.="var app=new SlotApp(options);\n";
-	$content.="app.attachToElement('slotgame');\n";
+	$content.="SLOTKIT_BASEURL='".plugins_url()."/slotkit/'\n";
+	$content.="SLOTKIT_INITURL='".admin_url("admin-ajax.php")."?action=slotkit_init';\n";
 	$content.="</script>\n";
 
 	return $content;
