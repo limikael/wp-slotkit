@@ -1,0 +1,6 @@
+[submodule "ext/wpcrud"]
+	path = ext/wpcrud
+	url = https://github.com/limikael/wpcrud
+[submodule "ext/wprecord"]
+	path = ext/wprecord
+	url = https://github.com/limikael/wprecord
