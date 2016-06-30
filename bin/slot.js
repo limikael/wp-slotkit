@@ -805,12 +805,40 @@ Object.defineProperty(PixiApp.prototype, "superSampling", {
 // shim for using process in browser
 
 var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+(function () {
+  try {
+    cachedSetTimeout = setTimeout;
+  } catch (e) {
+    cachedSetTimeout = function () {
+      throw new Error('setTimeout is not defined');
+    }
+  }
+  try {
+    cachedClearTimeout = clearTimeout;
+  } catch (e) {
+    cachedClearTimeout = function () {
+      throw new Error('clearTimeout is not defined');
+    }
+  }
+} ())
 var queue = [];
 var draining = false;
 var currentQueue;
 var queueIndex = -1;
 
 function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
     draining = false;
     if (currentQueue.length) {
         queue = currentQueue.concat(queue);
@@ -826,7 +854,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = setTimeout(cleanUpNextTick);
+    var timeout = cachedSetTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -843,7 +871,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    clearTimeout(timeout);
+    cachedClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -855,7 +883,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
+        cachedSetTimeout(drainQueue, 0);
     }
 };
 
@@ -2471,7 +2499,7 @@ SlotApp.prototype.onAssetsError = function(ev) {
 	this.trigger("error", "ERROR LOADING ASSETS");
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":20,"../view/SymbolView":25,"inherits":1,"pixiapp":3,"tween.js":7,"yaed":8}],10:[function(require,module,exports){
+},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":21,"../view/SymbolView":26,"inherits":1,"pixiapp":3,"tween.js":7,"yaed":8}],10:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -3127,7 +3155,7 @@ GameModel.prototype.getBetIncrease = function() {
 }
 
 module.exports = GameModel;
-},{"../utils/Xhr":15,"./DefaultOptions":11,"tinp":6,"yaed":8}],13:[function(require,module,exports){
+},{"../utils/Xhr":16,"./DefaultOptions":11,"tinp":6,"yaed":8}],13:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3175,6 +3203,33 @@ PixiUtil.findParentOfType = function(child, parentType) {
 	return PixiUtil.findParentOfType(child.parent, parentType);
 }
 },{}],15:[function(require,module,exports){
+/**
+ * Utl utilities class.
+ * @class UrlUtil
+ */
+function UrlUtil() {}
+
+/**
+ * For something empty, return empty.
+ * For an absolute url, return the url.
+ * For something else, assume relative url and
+ * append the base url.
+ * @method makeAbsolute
+ * @static
+ */
+UrlUtil.makeAbsolute = function(url, baseUrl) {
+    if (!url)
+        return null;
+
+    if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0)
+        return url;
+
+    return baseUrl + url;
+}
+
+module.exports = UrlUtil;
+
+},{}],16:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -3249,7 +3304,7 @@ Xhr.prototype.onRequestReadyStateChange = function() {
 
 	this.sendThenable.resolve(this.response);
 }
-},{"tinp":6}],16:[function(require,module,exports){
+},{"tinp":6}],17:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3325,7 +3380,7 @@ BetLineButton.prototype.setColor = function(color) {
 BetLineButton.prototype.setHighlight = function(highlight) {
 	this.highlight.visible = highlight;
 }
-},{"inherits":1}],17:[function(require,module,exports){
+},{"inherits":1}],18:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var BetLineButton = require("./BetLineButton");
@@ -3421,7 +3476,7 @@ BetLineButtonsView.prototype.highlightBetLine = function(betLineIndex) {
 
 	this.buttons[betLineIndex].setHighlight(true);
 }
-},{"./BetLineButton":16,"inherits":1,"yaed":8}],18:[function(require,module,exports){
+},{"./BetLineButton":17,"inherits":1,"yaed":8}],19:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3508,7 +3563,7 @@ BetLineView.prototype.drawBetLine = function(betLine) {
 		);
 	}
 }
-},{"inherits":1}],19:[function(require,module,exports){
+},{"inherits":1}],20:[function(require,module,exports){
 var inherits = require("inherits");
 var BrightnessFilter = require("../utils/BrightnessFilter");
 var EventDispatcher = require("yaed");
@@ -3586,7 +3641,7 @@ ButtonHighlight.prototype.setEnabled = function(enabled) {
 		this.buttonMode = false;
 	}
 }
-},{"../utils/BrightnessFilter":13,"../utils/PixiUtil":14,"inherits":1,"yaed":8}],20:[function(require,module,exports){
+},{"../utils/BrightnessFilter":13,"../utils/PixiUtil":14,"inherits":1,"yaed":8}],21:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ReelView = require("./ReelView");
@@ -3596,47 +3651,49 @@ var WinView = require("./WinView");
 var KeypadView = require("./KeypadView");
 var SymbolView = require("./SymbolView");
 var PaytableView = require("./PaytableView");
+var UrlUtil = require("../utils/UrlUtil");
 
 /**
+ * The main view of the game.
  * @class GameView
  */
 function GameView(options) {
-	PIXI.Container.call(this);
+    PIXI.Container.call(this);
 
-	this.options = options;
+    this.options = options;
 
-	this.background = PIXI.Sprite.fromFrame(options.baseUrl + options.background);
-	this.addChild(this.background);
+    this.background = PIXI.Sprite.fromFrame(UrlUtil.makeAbsolute(this.options.background, options.baseUrl));
+    this.addChild(this.background);
 
-	this.reelViews = [];
-	for (var i = 0; i < this.options.numReels; i++) {
-		var reelView = new ReelView(this.options);
-		reelView.setReelIndex(i);
-		this.reelViews.push(reelView);
-		this.addChild(reelView);
-	}
+    this.reelViews = [];
+    for (var i = 0; i < this.options.numReels; i++) {
+        var reelView = new ReelView(this.options);
+        reelView.setReelIndex(i);
+        this.reelViews.push(reelView);
+        this.addChild(reelView);
+    }
 
-	this.foreground = PIXI.Sprite.fromFrame(options.baseUrl + options.foreground);
-	this.addChild(this.foreground);
+    this.foreground = PIXI.Sprite.fromFrame(UrlUtil.makeAbsolute(this.options.foreground, options.baseUrl));
+    this.addChild(this.foreground);
 
-	this.keypadView = new KeypadView(this.options);
-	this.keypadView.on("spinButtonClick", this.trigger.bind(this, "spinButtonClick"));
-	this.addChild(this.keypadView);
+    this.keypadView = new KeypadView(this.options);
+    this.keypadView.on("spinButtonClick", this.trigger.bind(this, "spinButtonClick"));
+    this.addChild(this.keypadView);
 
-	this.betLineButtonsView = new BetLineButtonsView(this.options);
-	this.betLineButtonsView.on("selectedBetLineChange", function() {
-		this.trigger("selectedBetLineChange");
-	}.bind(this));
-	this.addChild(this.betLineButtonsView);
+    this.betLineButtonsView = new BetLineButtonsView(this.options);
+    this.betLineButtonsView.on("selectedBetLineChange", function() {
+        this.trigger("selectedBetLineChange");
+    }.bind(this));
+    this.addChild(this.betLineButtonsView);
 
-	this.betLineView = new BetLineView(this.options);
-	this.addChild(this.betLineView);
+    this.betLineView = new BetLineView(this.options);
+    this.addChild(this.betLineView);
 
-	this.winView = new WinView(this.options);
-	this.addChild(this.winView);
+    this.winView = new WinView(this.options);
+    this.addChild(this.winView);
 
-	this.paytableView = new PaytableView(this.options);
-	this.addChild(this.paytableView);
+    this.paytableView = new PaytableView(this.options);
+    this.addChild(this.paytableView);
 }
 
 inherits(GameView, PIXI.Container);
@@ -3647,14 +3704,14 @@ module.exports = GameView;
  * Highlight a bet line.
  */
 GameView.prototype.highlightBetLine = function(betLineIndex) {
-	if (betLineIndex === null) {
-		this.betLineView.hide();
-		this.betLineButtonsView.highlightBetLine(null);
-		return;
-	}
+    if (betLineIndex === null) {
+        this.betLineView.hide();
+        this.betLineButtonsView.highlightBetLine(null);
+        return;
+    }
 
-	this.betLineView.showBetLineIndex(betLineIndex);
-	this.betLineButtonsView.highlightBetLine(betLineIndex);
+    this.betLineView.showBetLineIndex(betLineIndex);
+    this.betLineButtonsView.highlightBetLine(betLineIndex);
 }
 
 /**
@@ -3662,80 +3719,81 @@ GameView.prototype.highlightBetLine = function(betLineIndex) {
  * @method getWinView
  */
 GameView.prototype.getWinView = function() {
-	return this.winView;
+    return this.winView;
 }
 
 /**
  * Get selected bet line.
  */
 GameView.prototype.getSelectedBetLine = function() {
-	return this.betLineButtonsView.getSelectedBetLine();
+    return this.betLineButtonsView.getSelectedBetLine();
 }
 
 /**
  * Get bet line view.
  */
 GameView.prototype.getBetLineView = function() {
-	return this.betLineView;
+    return this.betLineView;
 }
 
 /**
  * Get reel view at index.
  */
 GameView.prototype.getReelViewAt = function(index) {
-	return this.reelViews[index];
+    return this.reelViews[index];
 }
 
 /**
  * Get symbol view ar reel and row.
  */
 GameView.prototype.getSymbolViewAt = function(reelIndex, rowIndex) {
-	return this.getReelViewAt(reelIndex).getSymbolViewAt(rowIndex);
+    return this.getReelViewAt(reelIndex).getSymbolViewAt(rowIndex);
 }
 
 /**
  * Set spin button enabled.
  */
 GameView.prototype.setSpinButtonEnabled = function(enabled) {
-	this.keypadView.setSpinButtonEnabled(enabled);
+    this.keypadView.setSpinButtonEnabled(enabled);
 }
 
 /**
  * Set bet buttons enabled.
  */
 GameView.prototype.setBetButtonsEnabled = function(enabled) {
-	this.keypadView.setBetButtonsEnabled(enabled);
+    this.keypadView.setBetButtonsEnabled(enabled);
 }
 
 /**
  * Get keypad view.
  */
 GameView.prototype.getKeypadView = function() {
-	return this.keypadView;
+    return this.keypadView;
 }
 
 /**
  * Paytable view.
  */
 GameView.prototype.getPaytableView = function() {
-	return this.paytableView;
+    return this.paytableView;
 }
 
 /**
  * Populate pixi loader according to options.
  */
 GameView.populateAssetLoader = function(options) {
-	for (var i = 0; i < options.numSymbols; i++) {
-		var symbolId = SymbolView.generateSymbolFrameId(options.symbolFormat, i);
-		PIXI.loader.add(symbolId, options.baseUrl + symbolId);
-	}
+    for (var i = 0; i < options.numSymbols; i++) {
+        var symbolId = SymbolView.generateSymbolFrameId(options.symbolFormat, i);
+        PIXI.loader.add(symbolId, UrlUtil.makeAbsolute(symbolId, options.baseUrl));
+    }
 
-	PIXI.loader.add(options.background, options.baseUrl + options.background);
-	PIXI.loader.add(options.foreground, options.baseUrl + options.foreground);
-	PIXI.loader.add(options.paytableBackground, options.baseUrl + options.paytableBackground);
-	PIXI.loader.add(options.buttonHighlight, options.baseUrl + options.buttonHighlight);
+    PIXI.loader.add(UrlUtil.makeAbsolute(options.background, options.baseUrl));
+    PIXI.loader.add(options.foreground, UrlUtil.makeAbsolute(options.foreground, options.baseUrl));
+    PIXI.loader.add(options.paytableBackground, UrlUtil.makeAbsolute(options.paytableBackground, options.baseUrl));
+    PIXI.loader.add(options.buttonHighlight, UrlUtil.makeAbsolute(options.buttonHighlight, options.baseUrl));
 }
-},{"./BetLineButtonsView":17,"./BetLineView":18,"./KeypadView":21,"./PaytableView":23,"./ReelView":24,"./SymbolView":25,"./WinView":26,"inherits":1,"yaed":8}],21:[function(require,module,exports){
+
+},{"../utils/UrlUtil":15,"./BetLineButtonsView":18,"./BetLineView":19,"./KeypadView":22,"./PaytableView":24,"./ReelView":25,"./SymbolView":26,"./WinView":27,"inherits":1,"yaed":8}],22:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -3873,7 +3931,7 @@ KeypadView.prototype.setLines = function(lines) {
 	this.linesField.text = lines;
 	this.updateFieldPositions();
 }
-},{"./ButtonHighlight":19,"inherits":1,"yaed":8}],22:[function(require,module,exports){
+},{"./ButtonHighlight":20,"inherits":1,"yaed":8}],23:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 
@@ -3929,50 +3987,51 @@ PaytableEntryView.prototype.updateFieldPosition = function() {
 	this.payoutField.x = this.symbol.width + 20;
 	this.payoutField.y = (this.symbol.height - this.payoutField.height) / 2;
 }
-},{"./SymbolView":25,"inherits":1}],23:[function(require,module,exports){
+},{"./SymbolView":26,"inherits":1}],24:[function(require,module,exports){
 var inherits = require("inherits");
 var PaytableEntryView = require("./PaytableEntryView");
 var ButtonHighlight = require("./ButtonHighlight");
 var EventDispatcher = require("yaed");
+var UrlUtil = require("../utils/UrlUtil");
 
 /**
  * Show the paytable.
  */
 function PaytableView(options) {
-	PIXI.Container.call(this);
+    PIXI.Container.call(this);
 
-	this.options = options;
+    this.options = options;
 
-	this.background = PIXI.Sprite.fromFrame(this.options.baseUrl + this.options.paytableBackground);
-	this.addChild(this.background);
+    this.background = PIXI.Sprite.fromFrame(UrlUtil.makeAbsolute(this.options.paytableBackground, this.options.baseUrl));
+    this.addChild(this.background);
 
-	this.nextButton = new ButtonHighlight(this.options, 20);
-	this.nextButton.x = this.options.paytableNextButtonPosition[0];
-	this.nextButton.y = this.options.paytableNextButtonPosition[1];
-	this.nextButton.on("click", this.trigger.bind(this, "nextButtonClick"))
-	this.addChild(this.nextButton);
+    this.nextButton = new ButtonHighlight(this.options, 20);
+    this.nextButton.x = this.options.paytableNextButtonPosition[0];
+    this.nextButton.y = this.options.paytableNextButtonPosition[1];
+    this.nextButton.on("click", this.trigger.bind(this, "nextButtonClick"))
+    this.addChild(this.nextButton);
 
-	this.prevButton = new ButtonHighlight(this.options, 20);
-	this.prevButton.x = this.options.paytablePrevButtonPosition[0];
-	this.prevButton.y = this.options.paytablePrevButtonPosition[1];
-	this.prevButton.on("click", this.trigger.bind(this, "prevButtonClick"))
-	this.addChild(this.prevButton);
+    this.prevButton = new ButtonHighlight(this.options, 20);
+    this.prevButton.x = this.options.paytablePrevButtonPosition[0];
+    this.prevButton.y = this.options.paytablePrevButtonPosition[1];
+    this.prevButton.on("click", this.trigger.bind(this, "prevButtonClick"))
+    this.addChild(this.prevButton);
 
-	var style = {
-		font: "bold 24px sans",
-		dropShadow: true,
-		fill: "#ffffff",
-		dropShadowColor: "#000000",
-		dropShadowDistance: 2,
-		dropShadowAngle: Math.PI / 4
-	};
+    var style = {
+        font: "bold 24px sans",
+        dropShadow: true,
+        fill: "#ffffff",
+        dropShadowColor: "#000000",
+        dropShadowDistance: 2,
+        dropShadowAngle: Math.PI / 4
+    };
 
-	this.pageField = new PIXI.Text("1/2", style);
-	this.pageField.x = this.options.paytablePageFieldPosition[0] - this.pageField.width / 2;
-	this.pageField.y = this.options.paytablePageFieldPosition[1] - this.pageField.height / 2;
-	this.addChild(this.pageField);
+    this.pageField = new PIXI.Text("1/2", style);
+    this.pageField.x = this.options.paytablePageFieldPosition[0] - this.pageField.width / 2;
+    this.pageField.y = this.options.paytablePageFieldPosition[1] - this.pageField.height / 2;
+    this.addChild(this.pageField);
 
-	this.createEntries();
+    this.createEntries();
 }
 
 inherits(PaytableView, PIXI.Container);
@@ -3983,92 +4042,93 @@ module.exports = PaytableView;
  * Hide the paytable.
  */
 PaytableView.prototype.hide = function() {
-	this.visible = false;
+    this.visible = false;
 }
 
 /**
  * Toggle visibility of the paytable.
  */
 PaytableView.prototype.toggleShown = function() {
-	if (this.visible)
-		this.visible = false;
+    if (this.visible)
+        this.visible = false;
 
-	else
-		this.visible = true;
+    else
+        this.visible = true;
 }
 
 /**
  * Create entries.
  */
 PaytableView.prototype.createEntries = function() {
-	var x = 0;
-	var y = 0;
-	var page;
+    var x = 0;
+    var y = 0;
+    var page;
 
-	this.pages = [];
+    this.pages = [];
 
-	for (var i = 0; i < this.options.numSymbols; i++) {
-		if (!page) {
-			page = new PIXI.Container();
-			this.pages.push(page);
-			this.addChild(page);
-		}
+    for (var i = 0; i < this.options.numSymbols; i++) {
+        if (!page) {
+            page = new PIXI.Container();
+            this.pages.push(page);
+            this.addChild(page);
+        }
 
-		var entry = new PaytableEntryView(this.options);
-		entry.x = this.options.paytableOffset[0] + x * this.options.paytableColSpacing;
-		entry.y = this.options.paytableOffset[1] + y * this.options.paytableRowSpacing;
-		entry.setSymbolId(i);
-		page.addChild(entry);
+        var entry = new PaytableEntryView(this.options);
+        entry.x = this.options.paytableOffset[0] + x * this.options.paytableColSpacing;
+        entry.y = this.options.paytableOffset[1] + y * this.options.paytableRowSpacing;
+        entry.setSymbolId(i);
+        page.addChild(entry);
 
-		x++;
-		if (x > 2) {
-			x = 0;
-			y++;
+        x++;
+        if (x > 2) {
+            x = 0;
+            y++;
 
-			if (y > 1) {
-				y = 0;
-				page = null;
-			}
-		}
-	}
+            if (y > 1) {
+                y = 0;
+                page = null;
+            }
+        }
+    }
 
-	this.currentPageIndex = 0;
-	this.updateCurrentPage();
+    this.currentPageIndex = 0;
+    this.updateCurrentPage();
 }
 
 /**
  * Update current page.
  */
 PaytableView.prototype.updateCurrentPage = function() {
-	for (var i = 0; i < this.pages.length; i++)
-		this.pages[i].visible = false;
+    for (var i = 0; i < this.pages.length; i++)
+        this.pages[i].visible = false;
 
-	this.pages[this.currentPageIndex].visible = true;
-	this.pageField.text = (this.currentPageIndex + 1) + "/" + this.pages.length;
+    this.pages[this.currentPageIndex].visible = true;
+    this.pageField.text = (this.currentPageIndex + 1) + "/" + this.pages.length;
 }
 
 /**
  * Set the current page index.
  */
 PaytableView.prototype.setCurrentPageIndex = function(index) {
-	this.currentPageIndex = index;
+    this.currentPageIndex = index;
 
-	if (this.currentPageIndex < 0)
-		this.currentPageIndex = 0;
+    if (this.currentPageIndex < 0)
+        this.currentPageIndex = 0;
 
-	if (this.currentPageIndex >= this.pages.length)
-		this.currentPageIndex = this.pages.length - 1;
+    if (this.currentPageIndex >= this.pages.length)
+        this.currentPageIndex = this.pages.length - 1;
 
-	this.updateCurrentPage();
+    this.updateCurrentPage();
 }
 
 /**
  * Get current page index.
  */
 PaytableView.prototype.getCurrentPageIndex = function() {
-	return this.currentPageIndex;
+    return this.currentPageIndex;
 }
-},{"./ButtonHighlight":19,"./PaytableEntryView":22,"inherits":1,"yaed":8}],24:[function(require,module,exports){
+
+},{"../utils/UrlUtil":15,"./ButtonHighlight":20,"./PaytableEntryView":23,"inherits":1,"yaed":8}],25:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 var PixiUtil = require("../utils/PixiUtil");
@@ -4256,7 +4316,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween.start();
 	}
 }
-},{"../utils/PixiUtil":14,"./SymbolView":25,"inherits":1,"tinp":6,"tween.js":7}],25:[function(require,module,exports){
+},{"../utils/PixiUtil":14,"./SymbolView":26,"inherits":1,"tinp":6,"tween.js":7}],26:[function(require,module,exports){
 var inherits = require("inherits");
 var TWEEN = require("tween.js");
 var Thenable = require("tinp");
@@ -4323,7 +4383,7 @@ SymbolView.prototype.playBetLineWin = function() {
 
 	return thenable;
 }
-},{"inherits":1,"tinp":6,"tween.js":7}],26:[function(require,module,exports){
+},{"inherits":1,"tinp":6,"tween.js":7}],27:[function(require,module,exports){
 var inherits = require("inherits");
 var Thenable = require("tinp");
 var TWEEN = require("tween.js");

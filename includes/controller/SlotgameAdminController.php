@@ -6,6 +6,17 @@ class SlotgameAdminController extends WpCrud {
 
     function init() {
         $this->addField("name");
+
+        $f=$this->addBox("Graphics");
+
+        $f->addField("foregroundUrl")
+            ->type("media-image");
+
+        $f->addField("backgroundUrl")
+            ->type("media-image");
+
+        $f->addField("paytableBackgroundUrl")
+            ->type("media-image");
     }
 
     function getLiteral($literalId) {

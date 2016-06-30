@@ -22,11 +22,28 @@ class SlotgameController {
      * The init call.
      */
     public function init() {
-     	echo json_encode(array(
-    		"spinUrl"=>admin_url("admin-ajax.php")."?action=slotkit_spin",
+        $slotgame=Slotgame::findOne($_REQUEST["id"]);
+        if (!$slotgame) {
+            echo "Game not found.";
+            exit;
+        }
+
+        $response=array(
+            "spinUrl"=>admin_url("admin-ajax.php")."?action=slotkit_spin",
     		"baseUrl"=>plugins_url()."/slotkit/",
-    		"balance"=>15
-    	));
+    		"balance"=>15,
+        );
+
+        if ($slotgame->backgroundUrl)
+            $response["background"]=$slotgame->backgroundUrl;
+
+        if ($slotgame->foregroundUrl)
+            $response["foreground"]=$slotgame->foregroundUrl;
+
+        if ($slotgame->paytableBackgroundUrl)
+            $response["paytableBackground"]=$slotgame->paytableBackgroundUrl;
+
+     	echo json_encode($response);
     	exit;
     }
 
@@ -64,7 +81,11 @@ class SlotgameController {
     /**
      * Handle the slotgame shortcode.
      */
-    public function slotgame() {
+    public function slotgame($params) {
+        $slotgame=Slotgame::findOne($params["id"]);
+        if (!$slotgame)
+            return "Game not found, id=".$params["id"];
+
         wp_enqueue_script("bundleloader",plugins_url()."/slotkit/bin/bundleloader.min.js");
     	wp_enqueue_script("wpslot",plugins_url()."/slotkit/bin/wpslot.js");
 
@@ -72,7 +93,7 @@ class SlotgameController {
     	$content.="<div id='slotgame' style='width:100%; height:500px; position:relative'></div>\n";
     	$content.="<script>\n";
     	$content.="SLOTKIT_BASEURL='".plugins_url()."/slotkit/'\n";
-    	$content.="SLOTKIT_INITURL='".admin_url("admin-ajax.php")."?action=slotkit_init';\n";
+    	$content.="SLOTKIT_INITURL='".admin_url("admin-ajax.php")."?action=slotkit_init&id=".$params["id"]."';\n";
     	$content.="</script>\n";
 
     	return $content;

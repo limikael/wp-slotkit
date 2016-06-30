@@ -13,5 +13,8 @@ class Slotgame extends WpRecord {
     public static function initialize() {
 		self::field("id","integer not null auto_increment");
 		self::field("name","varchar(255) not null");
+        self::field("backgroundUrl","varchar(255) not null");
+        self::field("foregroundUrl","varchar(255) not null");
+        self::field("paytableBackgroundUrl","varchar(255) not null");
 	}
 }
