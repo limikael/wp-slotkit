@@ -43,6 +43,9 @@ class SlotgameController {
         if ($slotgame->paytableBackgroundUrl)
             $response["paytableBackground"]=$slotgame->paytableBackgroundUrl;
 
+        if ($slotgame->symbolsUrl)
+            $response["symbols"]=$slotgame->symbolsUrl;
+
      	echo json_encode($response);
     	exit;
     }

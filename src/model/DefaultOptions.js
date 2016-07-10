@@ -5,6 +5,7 @@ module.exports = {
 	symbolFormat: "res/symbols/sym#.png",
 	buttonHighlight: "res/highlight.png",
 	paytableBackground: "res/paytable.png",
+	symbols: "res/symbols.png",
 	spinButtonPosition: [512, 480],
 	betIncPosition: [765, 484],
 	betDecPosition: [600, 484],

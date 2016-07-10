@@ -2499,7 +2499,7 @@ SlotApp.prototype.onAssetsError = function(ev) {
 	this.trigger("error", "ERROR LOADING ASSETS");
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":21,"../view/SymbolView":26,"inherits":1,"pixiapp":3,"tween.js":7,"yaed":8}],10:[function(require,module,exports){
+},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":22,"../view/SymbolView":27,"inherits":1,"pixiapp":3,"tween.js":7,"yaed":8}],10:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -2713,6 +2713,7 @@ module.exports = {
 	symbolFormat: "res/symbols/sym#.png",
 	buttonHighlight: "res/highlight.png",
 	paytableBackground: "res/paytable.png",
+	symbols: "res/symbols.png",
 	spinButtonPosition: [512, 480],
 	betIncPosition: [765, 484],
 	betDecPosition: [600, 484],
@@ -2776,6 +2777,7 @@ module.exports = {
 		"0": [1, 2, 4]
 	}
 };
+
 },{}],12:[function(require,module,exports){
 var Xhr = require("../utils/Xhr");
 var Thenable = require("tinp");
@@ -3155,7 +3157,7 @@ GameModel.prototype.getBetIncrease = function() {
 }
 
 module.exports = GameModel;
-},{"../utils/Xhr":16,"./DefaultOptions":11,"tinp":6,"yaed":8}],13:[function(require,module,exports){
+},{"../utils/Xhr":17,"./DefaultOptions":11,"tinp":6,"yaed":8}],13:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3187,6 +3189,38 @@ Object.defineProperty(BrightnessFilter.prototype, "brightness", {
 	}
 });
 },{"inherits":1}],14:[function(require,module,exports){
+/**
+ * Cur out sprites from an image representing a grid of sprites.
+ */
+function GridSheet(texture) {
+    this.texture = texture;
+
+    this.gridRows = 3;
+    this.gridCols = 3;
+}
+
+module.exports = GridSheet;
+
+/**
+ * Create a sprite given an index.
+ */
+GridSheet.prototype.createSprite = function(index) {
+    var t = this.texture.clone();
+    var row = Math.floor(index / this.gridRows);
+    var col = index % this.gridCols;
+
+
+
+    t.frame = new PIXI.Rectangle(
+        col * t.width / this.gridCols,
+        row * t.height / this.gridRows,
+        t.width / this.gridCols,
+        t.height / this.gridRows);
+
+    return new PIXI.Sprite(t);
+}
+
+},{}],15:[function(require,module,exports){
 function PixiUtil() {}
 module.exports = PixiUtil;
 
@@ -3202,7 +3236,7 @@ PixiUtil.findParentOfType = function(child, parentType) {
 
 	return PixiUtil.findParentOfType(child.parent, parentType);
 }
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /**
  * Utl utilities class.
  * @class UrlUtil
@@ -3229,7 +3263,7 @@ UrlUtil.makeAbsolute = function(url, baseUrl) {
 
 module.exports = UrlUtil;
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -3304,7 +3338,7 @@ Xhr.prototype.onRequestReadyStateChange = function() {
 
 	this.sendThenable.resolve(this.response);
 }
-},{"tinp":6}],17:[function(require,module,exports){
+},{"tinp":6}],18:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3380,7 +3414,7 @@ BetLineButton.prototype.setColor = function(color) {
 BetLineButton.prototype.setHighlight = function(highlight) {
 	this.highlight.visible = highlight;
 }
-},{"inherits":1}],18:[function(require,module,exports){
+},{"inherits":1}],19:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var BetLineButton = require("./BetLineButton");
@@ -3476,7 +3510,7 @@ BetLineButtonsView.prototype.highlightBetLine = function(betLineIndex) {
 
 	this.buttons[betLineIndex].setHighlight(true);
 }
-},{"./BetLineButton":17,"inherits":1,"yaed":8}],19:[function(require,module,exports){
+},{"./BetLineButton":18,"inherits":1,"yaed":8}],20:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3563,7 +3597,7 @@ BetLineView.prototype.drawBetLine = function(betLine) {
 		);
 	}
 }
-},{"inherits":1}],20:[function(require,module,exports){
+},{"inherits":1}],21:[function(require,module,exports){
 var inherits = require("inherits");
 var BrightnessFilter = require("../utils/BrightnessFilter");
 var EventDispatcher = require("yaed");
@@ -3641,7 +3675,7 @@ ButtonHighlight.prototype.setEnabled = function(enabled) {
 		this.buttonMode = false;
 	}
 }
-},{"../utils/BrightnessFilter":13,"../utils/PixiUtil":14,"inherits":1,"yaed":8}],21:[function(require,module,exports){
+},{"../utils/BrightnessFilter":13,"../utils/PixiUtil":15,"inherits":1,"yaed":8}],22:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ReelView = require("./ReelView");
@@ -3791,9 +3825,12 @@ GameView.populateAssetLoader = function(options) {
     PIXI.loader.add(options.foreground, UrlUtil.makeAbsolute(options.foreground, options.baseUrl));
     PIXI.loader.add(options.paytableBackground, UrlUtil.makeAbsolute(options.paytableBackground, options.baseUrl));
     PIXI.loader.add(options.buttonHighlight, UrlUtil.makeAbsolute(options.buttonHighlight, options.baseUrl));
+
+    if (options.symbols)
+        PIXI.loader.add(UrlUtil.makeAbsolute(options.symbols, options.baseUrl));
 }
 
-},{"../utils/UrlUtil":15,"./BetLineButtonsView":18,"./BetLineView":19,"./KeypadView":22,"./PaytableView":24,"./ReelView":25,"./SymbolView":26,"./WinView":27,"inherits":1,"yaed":8}],22:[function(require,module,exports){
+},{"../utils/UrlUtil":16,"./BetLineButtonsView":19,"./BetLineView":20,"./KeypadView":23,"./PaytableView":25,"./ReelView":26,"./SymbolView":27,"./WinView":28,"inherits":1,"yaed":8}],23:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -3931,7 +3968,7 @@ KeypadView.prototype.setLines = function(lines) {
 	this.linesField.text = lines;
 	this.updateFieldPositions();
 }
-},{"./ButtonHighlight":20,"inherits":1,"yaed":8}],23:[function(require,module,exports){
+},{"./ButtonHighlight":21,"inherits":1,"yaed":8}],24:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 
@@ -3987,7 +4024,7 @@ PaytableEntryView.prototype.updateFieldPosition = function() {
 	this.payoutField.x = this.symbol.width + 20;
 	this.payoutField.y = (this.symbol.height - this.payoutField.height) / 2;
 }
-},{"./SymbolView":26,"inherits":1}],24:[function(require,module,exports){
+},{"./SymbolView":27,"inherits":1}],25:[function(require,module,exports){
 var inherits = require("inherits");
 var PaytableEntryView = require("./PaytableEntryView");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -4128,7 +4165,7 @@ PaytableView.prototype.getCurrentPageIndex = function() {
     return this.currentPageIndex;
 }
 
-},{"../utils/UrlUtil":15,"./ButtonHighlight":20,"./PaytableEntryView":23,"inherits":1,"yaed":8}],25:[function(require,module,exports){
+},{"../utils/UrlUtil":16,"./ButtonHighlight":21,"./PaytableEntryView":24,"inherits":1,"yaed":8}],26:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 var PixiUtil = require("../utils/PixiUtil");
@@ -4316,74 +4353,88 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween.start();
 	}
 }
-},{"../utils/PixiUtil":14,"./SymbolView":26,"inherits":1,"tinp":6,"tween.js":7}],26:[function(require,module,exports){
+},{"../utils/PixiUtil":15,"./SymbolView":27,"inherits":1,"tinp":6,"tween.js":7}],27:[function(require,module,exports){
 var inherits = require("inherits");
 var TWEEN = require("tween.js");
 var Thenable = require("tinp");
+var UrlUtil = require("../utils/UrlUtil");
+var GridSheet = require("../utils/GridSheet");
 
 function SymbolView(options) {
-	PIXI.Container.call(this);
+    PIXI.Container.call(this);
 
-	this.options = options;
+    this.options = options;
+
+    if (this.options.symbols && !this.options.symbolSheet) {
+        var u = UrlUtil.makeAbsolute(this.options.symbols, this.options.baseUrl);
+        var t = PIXI.Texture.fromFrame(u);
+        this.options.symbolSheet = new GridSheet(t);
+    }
 }
 
 inherits(SymbolView, PIXI.Container);
 module.exports = SymbolView;
 
 SymbolView.prototype.setSymbolId = function(symbolId) {
-	this.symbolId = symbolId;
-	var imageId = SymbolView.generateSymbolFrameId(this.options.baseUrl + this.options.symbolFormat, symbolId);
+    this.symbolId = symbolId;
+    /*var imageId = SymbolView.generateSymbolFrameId(this.options.baseUrl + this.options.symbolFormat, symbolId);
 
-	var symbol = PIXI.Sprite.fromImage(imageId);
-	symbol.x = -symbol.width / 2;
-	symbol.y = -symbol.height / 2;
+    imageId = UrlUtil.makeAbsolute(this.options.symbols, this.options.baseUrl);
+    var symbol = PIXI.Sprite.fromImage(imageId);*/
 
-	this.symbolSprite = new PIXI.Container();
-	this.symbolSprite.addChild(symbol);
-	this.addChild(this.symbolSprite);
+    //var symbol = new PIXI.Sprite(this.options.symbolTexture);
+    var symbol = this.options.symbolSheet.createSprite(symbolId);
+
+    symbol.x = -symbol.width / 2;
+    symbol.y = -symbol.height / 2;
+
+    this.symbolSprite = new PIXI.Container();
+    this.symbolSprite.addChild(symbol);
+    this.addChild(this.symbolSprite);
 }
 
 SymbolView.prototype.setReelIndex = function(reelIndex) {
-	this.reelIndex = reelIndex;
+    this.reelIndex = reelIndex;
 }
 
 SymbolView.prototype.setRowIndex = function(rowIndex) {
-	this.rowIndex = rowIndex;
-	this.y = rowIndex * this.options.rowSpacing;
+    this.rowIndex = rowIndex;
+    this.y = rowIndex * this.options.rowSpacing;
 }
 
 SymbolView.prototype.getRowIndex = function() {
-	return this.rowIndex;
+    return this.rowIndex;
 }
 
 SymbolView.generateSymbolFrameId = function(format, id) {
-	format = format.replace("#", (id + 1));
+    format = format.replace("#", (id + 1));
 
-	return format;
+    return format;
 }
 
 SymbolView.prototype.playBetLineWin = function() {
-	var thenable = new Thenable();
+    var thenable = new Thenable();
 
-	this.tween = new TWEEN.Tween(this.scale);
-	this.tween.to({
-		x: 1.2,
-		y: 1.2
-	}, 1000);
-	this.tween.easing(TWEEN.Easing.Elastic.InOut);
-	this.tween.delay(this.options.reelDelay * this.reelIndex);
-	this.tween.start();
+    this.tween = new TWEEN.Tween(this.scale);
+    this.tween.to({
+        x: 1.2,
+        y: 1.2
+    }, 1000);
+    this.tween.easing(TWEEN.Easing.Elastic.InOut);
+    this.tween.delay(this.options.reelDelay * this.reelIndex);
+    this.tween.start();
 
-	Thenable.delay(2000).then(function() {
-		this.scale.x = 1;
-		this.scale.y = 1;
+    Thenable.delay(2000).then(function() {
+        this.scale.x = 1;
+        this.scale.y = 1;
 
-		thenable.resolve();
-	}.bind(this));
+        thenable.resolve();
+    }.bind(this));
 
-	return thenable;
+    return thenable;
 }
-},{"inherits":1,"tinp":6,"tween.js":7}],27:[function(require,module,exports){
+
+},{"../utils/GridSheet":14,"../utils/UrlUtil":16,"inherits":1,"tinp":6,"tween.js":7}],28:[function(require,module,exports){
 var inherits = require("inherits");
 var Thenable = require("tinp");
 var TWEEN = require("tween.js");

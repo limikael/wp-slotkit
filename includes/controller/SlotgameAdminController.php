@@ -17,6 +17,9 @@ class SlotgameAdminController extends WpCrud {
 
         $f->addField("paytableBackgroundUrl")
             ->type("media-image");
+
+        $f->addField("symbolsUrl")
+            ->type("media-image");
     }
 
     function getLiteral($literalId) {

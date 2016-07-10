@@ -16,5 +16,6 @@ class Slotgame extends WpRecord {
         self::field("backgroundUrl","varchar(255) not null");
         self::field("foregroundUrl","varchar(255) not null");
         self::field("paytableBackgroundUrl","varchar(255) not null");
+        self::field("symbolsUrl","varchar(255) not null");
 	}
 }

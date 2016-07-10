@@ -147,4 +147,7 @@ GameView.populateAssetLoader = function(options) {
     PIXI.loader.add(options.foreground, UrlUtil.makeAbsolute(options.foreground, options.baseUrl));
     PIXI.loader.add(options.paytableBackground, UrlUtil.makeAbsolute(options.paytableBackground, options.baseUrl));
     PIXI.loader.add(options.buttonHighlight, UrlUtil.makeAbsolute(options.buttonHighlight, options.baseUrl));
+
+    if (options.symbols)
+        PIXI.loader.add(UrlUtil.makeAbsolute(options.symbols, options.baseUrl));
 }
