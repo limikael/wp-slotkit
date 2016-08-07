@@ -28,11 +28,14 @@ class SlotgameController {
             exit;
         }
 
-        $response=array(
-            "spinUrl"=>admin_url("admin-ajax.php")."?action=slotkit_spin",
-    		"baseUrl"=>plugins_url()."/slotkit/",
-    		"balance"=>15,
-        );
+        $response=array();
+        $response["baseUrl"]=plugins_url()."/slotkit/";
+        $response["balance"]=15;
+
+        $response["spinUrl"]=
+            admin_url("admin-ajax.php").
+            "?action=slotkit_spin".
+            "&id=".$_REQUEST["id"];
 
         if ($slotgame->backgroundUrl)
             $response["background"]=$slotgame->backgroundUrl;
@@ -54,10 +57,14 @@ class SlotgameController {
      * The spin call.
      */
     public function spin() {
-    	sleep(1);
+        $slotgame=Slotgame::findOne($_REQUEST["id"]);
+        if (!$slotgame)
+            exit("Game not found.");
+
+    	//sleep(1);
     	echo json_encode(array(
     		"reels"=>array(
-    			array(1,2,3),
+    			array(0,0,0),
     			array(2,3,4),
     			array(3,4,5),
     			array(4,5,6),
@@ -105,7 +112,7 @@ class SlotgameController {
     /**
      * Get singleton instance.
      */
-    public function getInstance() {
+    public static function getInstance() {
         if (!SlotgameController::$instance)
             SlotgameController::$instance=new SlotgameController();
 

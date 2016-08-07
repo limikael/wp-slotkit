@@ -2989,6 +2989,11 @@ GameModel.prototype.onSpinRequestComplete = function(response) {
  */
 GameModel.prototype.onSpinRequestError = function(error) {
 	console.log("spin error");
+
+	this.state = "stopped";
+	this.trigger("stateChange");
+	this.trigger("displayBalanceChange");
+	this.trigger("betChange");
 }
 
 /**
@@ -3157,6 +3162,7 @@ GameModel.prototype.getBetIncrease = function() {
 }
 
 module.exports = GameModel;
+
 },{"../utils/Xhr":17,"./DefaultOptions":11,"tinp":6,"yaed":8}],13:[function(require,module,exports){
 var inherits = require("inherits");
 

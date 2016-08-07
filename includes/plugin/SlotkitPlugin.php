@@ -35,7 +35,7 @@ class SlotkitPlugin {
     /**
      * Get singleton instance.
      */
-    public function getInstance() {
+    public static function getInstance() {
         if (!SlotkitPlugin::$instance)
             SlotkitPlugin::$instance=new SlotkitPlugin();
 

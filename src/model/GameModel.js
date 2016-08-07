@@ -208,6 +208,11 @@ GameModel.prototype.onSpinRequestComplete = function(response) {
  */
 GameModel.prototype.onSpinRequestError = function(error) {
 	console.log("spin error");
+
+	this.state = "stopped";
+	this.trigger("stateChange");
+	this.trigger("displayBalanceChange");
+	this.trigger("betChange");
 }
 
 /**
