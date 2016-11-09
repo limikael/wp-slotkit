@@ -49,6 +49,8 @@ class SlotgameController {
         if ($slotgame->symbolsUrl)
             $response["symbols"]=$slotgame->symbolsUrl;
 
+        $response["betLines"]=$slotgame->getBetLines();
+
      	echo json_encode($response);
     	exit;
     }
@@ -61,16 +63,11 @@ class SlotgameController {
         if (!$slotgame)
             exit("Game not found.");
 
-    	//sleep(1);
+        $outcome=$slotgame->generateOutcome();
+
     	echo json_encode(array(
-    		"reels"=>array(
-    			array(0,0,0),
-    			array(2,3,4),
-    			array(3,4,5),
-    			array(4,5,6),
-    			array(5,6,7)
-    		),
-    		"betLineWins"=>array(
+    		"reels"=>$outcome->getReels(),
+    		"betLineWins"=>$outcome->getBetLineWins()/*array(
     			array(
     				"betLine"=>0,
     				"numSymbols"=>3,
@@ -81,7 +78,7 @@ class SlotgameController {
     				"numSymbols"=>5,
     				"amount"=>456
     			)
-    		),
+    		)*/,
     		"balance"=>555,
     		"spinBalance"=>1001
     	));
@@ -100,10 +97,13 @@ class SlotgameController {
     	wp_enqueue_script("wpslot",plugins_url()."/slotkit/bin/wpslot.js");
 
     	$content="";
-    	$content.="<div id='slotgame' style='width:100%; height:500px; position:relative'></div>\n";
+    	$content.="<div id='slotgame' style='width:100%; height:1px; position:relative'></div>\n";
     	$content.="<script>\n";
     	$content.="SLOTKIT_BASEURL='".plugins_url()."/slotkit/'\n";
-    	$content.="SLOTKIT_INITURL='".admin_url("admin-ajax.php")."?action=slotkit_init&id=".$params["id"]."';\n";
+    	$content.="SLOTKIT_INITURL='".
+            admin_url("admin-ajax.php").
+            "?action=slotkit_init&id=".
+            $params["id"]."';\n";
     	$content.="</script>\n";
 
     	return $content;

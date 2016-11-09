@@ -3467,7 +3467,7 @@ BetLineButtonsView.prototype.createBetLineButtons = function() {
 		var button = new BetLineButton();
 		this.buttons.push(button);
 
-		if (i < halfNumButtons) {
+		if (!halfNumButtons || i < halfNumButtons) {
 			button.x = this.options.betLineButtonsLeft;
 			button.y = this.options.betLineButtonsTop +
 				i * this.options.betLineButtonsDistance;
@@ -3546,7 +3546,11 @@ BetLineView.prototype.showBetLineIndex = function(index) {
 		0x80ffff,
 	];
 
-	var betLine = this.options.betLines[index]
+	var betLine = this.options.betLines[index];
+
+	if (!betLine)
+		throw new Error("Bet line with index " + index + " doesn't exist");
+
 	this.showBetLine(betLine, betLineColors[index % betLineColors.length]);
 }
 
@@ -4371,10 +4375,16 @@ function SymbolView(options) {
 
     this.options = options;
 
-    if (this.options.symbols && !this.options.symbolSheet) {
+    if (!this.options.symbols)
+        throw new Error("No symbols");
+
+    if (!SymbolView.symbolSheet)
+        SymbolView.symbolSheet={};
+
+    if (!SymbolView.symbolSheet[this.options.symbols]) {
         var u = UrlUtil.makeAbsolute(this.options.symbols, this.options.baseUrl);
         var t = PIXI.Texture.fromFrame(u);
-        this.options.symbolSheet = new GridSheet(t);
+        SymbolView.symbolSheet[this.options.symbols] = new GridSheet(t);
     }
 }
 
@@ -4383,13 +4393,7 @@ module.exports = SymbolView;
 
 SymbolView.prototype.setSymbolId = function(symbolId) {
     this.symbolId = symbolId;
-    /*var imageId = SymbolView.generateSymbolFrameId(this.options.baseUrl + this.options.symbolFormat, symbolId);
-
-    imageId = UrlUtil.makeAbsolute(this.options.symbols, this.options.baseUrl);
-    var symbol = PIXI.Sprite.fromImage(imageId);*/
-
-    //var symbol = new PIXI.Sprite(this.options.symbolTexture);
-    var symbol = this.options.symbolSheet.createSprite(symbolId);
+    var symbol = SymbolView.symbolSheet[this.options.symbols].createSprite(symbolId);
 
     symbol.x = -symbol.width / 2;
     symbol.y = -symbol.height / 2;
@@ -4439,7 +4443,6 @@ SymbolView.prototype.playBetLineWin = function() {
 
     return thenable;
 }
-
 },{"../utils/GridSheet":14,"../utils/UrlUtil":16,"inherits":1,"tinp":6,"tween.js":7}],28:[function(require,module,exports){
 var inherits = require("inherits");
 var Thenable = require("tinp");

@@ -9,10 +9,16 @@ function SymbolView(options) {
 
     this.options = options;
 
-    if (this.options.symbols && !this.options.symbolSheet) {
+    if (!this.options.symbols)
+        throw new Error("No symbols");
+
+    if (!SymbolView.symbolSheet)
+        SymbolView.symbolSheet={};
+
+    if (!SymbolView.symbolSheet[this.options.symbols]) {
         var u = UrlUtil.makeAbsolute(this.options.symbols, this.options.baseUrl);
         var t = PIXI.Texture.fromFrame(u);
-        this.options.symbolSheet = new GridSheet(t);
+        SymbolView.symbolSheet[this.options.symbols] = new GridSheet(t);
     }
 }
 
@@ -21,13 +27,7 @@ module.exports = SymbolView;
 
 SymbolView.prototype.setSymbolId = function(symbolId) {
     this.symbolId = symbolId;
-    /*var imageId = SymbolView.generateSymbolFrameId(this.options.baseUrl + this.options.symbolFormat, symbolId);
-
-    imageId = UrlUtil.makeAbsolute(this.options.symbols, this.options.baseUrl);
-    var symbol = PIXI.Sprite.fromImage(imageId);*/
-
-    //var symbol = new PIXI.Sprite(this.options.symbolTexture);
-    var symbol = this.options.symbolSheet.createSprite(symbolId);
+    var symbol = SymbolView.symbolSheet[this.options.symbols].createSprite(symbolId);
 
     symbol.x = -symbol.width / 2;
     symbol.y = -symbol.height / 2;

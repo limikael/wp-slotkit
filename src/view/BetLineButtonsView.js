@@ -44,7 +44,7 @@ BetLineButtonsView.prototype.createBetLineButtons = function() {
 		var button = new BetLineButton();
 		this.buttons.push(button);
 
-		if (i < halfNumButtons) {
+		if (!halfNumButtons || i < halfNumButtons) {
 			button.x = this.options.betLineButtonsLeft;
 			button.y = this.options.betLineButtonsTop +
 				i * this.options.betLineButtonsDistance;

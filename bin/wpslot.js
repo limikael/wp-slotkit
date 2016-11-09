@@ -1,11 +1,12 @@
 jQuery(function($) {
 	var loader = new BundleLoader();
+	var app;
 	loader.parentElement = "slotgame";
 
 	loader.onload = function() {
 		var options = {};
 		options.initUrl = SLOTKIT_INITURL;
-		var app = new SlotApp(options);
+		app = new SlotApp(options);
 		app.setElementSize($('#slotgame').width(), $('#slotgame').height());
 		app.attachToElement('slotgame');
 
@@ -30,4 +31,22 @@ jQuery(function($) {
 		SLOTKIT_BASEURL + "bin/pixi.min.js",
 		SLOTKIT_BASEURL + "bin/slot.js"
 	], "LOADING", 50);
+
+	function updateSize() {
+		var width = $('#slotgame').width();
+		var height = width * 576 / 1024;
+		$('#slotgame').height(height);
+
+		if (app) {
+			app.setElementSize(width, height);
+		}
+	}
+
+	$(document).ready(function() {
+		updateSize();
+	});
+
+	$(window).resize(function() {
+		updateSize();
+	});
 });

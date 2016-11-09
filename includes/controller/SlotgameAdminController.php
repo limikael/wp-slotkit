@@ -1,11 +1,16 @@
 <?php
 
 require_once __DIR__."/../../ext/wpcrud/WpCrud.php";
+require_once __DIR__."/../model/Slotgame.php";
 
 class SlotgameAdminController extends WpCrud {
 
     function init() {
         $this->addField("name");
+
+        $this->addField("rules")
+            ->type("select")
+            ->options(Slotgame::getAvailableRules());
 
         $f=$this->addBox("Graphics");
 
@@ -27,10 +32,6 @@ class SlotgameAdminController extends WpCrud {
             case "typeName":
                 return "Slotgame";
                 break;
-
-/*            case "description":
-                return "hello";
-                break;*/
         }
     }
 

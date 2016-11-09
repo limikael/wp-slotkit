@@ -27,7 +27,11 @@ BetLineView.prototype.showBetLineIndex = function(index) {
 		0x80ffff,
 	];
 
-	var betLine = this.options.betLines[index]
+	var betLine = this.options.betLines[index];
+
+	if (!betLine)
+		throw new Error("Bet line with index " + index + " doesn't exist");
+
 	this.showBetLine(betLine, betLineColors[index % betLineColors.length]);
 }
 

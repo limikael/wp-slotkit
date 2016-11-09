@@ -13,11 +13,12 @@ class TestSlotgame extends WP_UnitTestCase {
         $g=new Slotgame();
         $g->save();
         $this->assertNotNull($g->id);
+    }
 
-        $reel=$g->getReel();
+    function testGetOutcome() {
+        $g=new Slotgame();
+        $g->rules="oneLine";
 
-        /*$id=$g->id;
-
-        echo "hello $id";*/
+        $outcome=$g->generateOutcome();
     }
 }
