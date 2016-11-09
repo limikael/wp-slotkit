@@ -2435,6 +2435,10 @@ function SlotApp(options) {
 	this.matte = true;
 
 	this.gameModel = new GameModel(options);
+	this.gameModel.on("displayBalanceChange",function() {
+		this.trigger("balance",this.gameModel.getDisplayBalance());
+	}.bind(this));
+
 	this.gameModel.init().then(
 		this.onGameModelInit.bind(this),
 		this.onGameModelError.bind(this)

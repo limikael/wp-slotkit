@@ -23,3 +23,6 @@ function slotkit_uninstall() {
 register_uninstall_hook(__FILE__, "slotkit_uninstall");
 
 SlotkitPlugin::getInstance();
+
+add_filter( 'widget_text', 'shortcode_unautop');
+add_filter( 'widget_text', 'do_shortcode');

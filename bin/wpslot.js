@@ -25,6 +25,11 @@ jQuery(function($) {
 		app.on("error", function(e) {
 			loader.showMessage(e);
 		});
+
+		app.on("balance", function(balance) {
+			$(".slotkit-ply-balance").text(balance);
+			console.log("balance: " + balance);
+		});
 	}
 
 	loader.load([

@@ -14,10 +14,22 @@ class SlotgameController {
 	 */
 	private function __construct() {
 		add_shortcode("slotgame", array($this, "slotgame"));
+		add_shortcode("slotkit-ply-balance", array($this, "slotgamePlyBalance"));
 		add_action("wp_ajax_slotkit_spin", array($this, "spin"));
 		add_action("wp_ajax_nopriv_slotkit_spin", array($this, "spin"));
 		add_action("wp_ajax_slotkit_init", array($this, "init"));
 		add_action("wp_ajax_nopriv_slotkit_init", array($this, "init"));
+	}
+
+	/**
+	 * Playmoney balance.
+	 */
+	public function slotgamePlyBalance() {
+		$slotUser=SlotUser::getCurrent();
+		if (!$slotUser)
+			return "";
+
+		return "<span class='slotkit-ply-balance'>".$slotUser->getBalance("ply")."</span>";
 	}
 
 	/**
