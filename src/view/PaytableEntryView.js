@@ -42,6 +42,17 @@ PaytableEntryView.prototype.setSymbolId = function(symbolId) {
  * Set payouts.
  */
 PaytableEntryView.prototype.setPayouts = function(payouts) {
+	var s = "";
+	for (var i = 0; i < this.options.numReels; i++) {
+		if (payouts[i]) {
+			if (s)
+				s+="\n";
+
+			s += (i + 1) + ": " + payouts[i] + "x";
+		}
+	}
+
+	this.payoutField.text = s;
 	this.updateFieldPosition();
 }
 

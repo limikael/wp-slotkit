@@ -151,6 +151,8 @@ GameModel.prototype.spin = function() {
 
 	this.spinRequest = new Xhr(this.options.spinUrl);
 	this.spinRequest.setResponseEncoding(Xhr.JSON);
+	this.spinRequest.setParameter("betLines", this.getUserBetLines());
+	this.spinRequest.setParameter("bet", this.getBet());
 	this.spinRequest.send().then(
 		this.onSpinRequestComplete.bind(this),
 		this.onSpinRequestError.bind(this)

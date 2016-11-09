@@ -87,6 +87,7 @@ PaytableView.prototype.createEntries = function() {
         entry.x = this.options.paytableOffset[0] + x * this.options.paytableColSpacing;
         entry.y = this.options.paytableOffset[1] + y * this.options.paytableRowSpacing;
         entry.setSymbolId(i);
+        entry.setPayouts(this.options.paytable[i]);
         page.addChild(entry);
 
         x++;

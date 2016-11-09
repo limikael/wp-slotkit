@@ -46,12 +46,12 @@ class Slotgame extends WpRecord {
 					array(1,1,1,1,1)
 				);
 				break;
-			
+
 			default:
 				throw new Exception("Unknown rules");
 				break;
 		}
-	}   
+	}
 
 	/**
 	 * Get number of reels.
@@ -77,8 +77,8 @@ class Slotgame extends WpRecord {
 	/**
 	 * Generate an outcome.
 	 */
-	public function generateOutcome() {
-		return new SlotgameOutcome($this);
+	public function generateOutcome($numBetLines, $bet) {
+		return new SlotgameOutcome($this,$numBetLines,$bet);
 	}
 
 	/**
@@ -89,5 +89,38 @@ class Slotgame extends WpRecord {
 			"default"=>"Standard (5 reels, 3 rows, 3x3 symbol sheet, 20 betlines)",
 			"oneLine"=>"One bet line (5 reels, 3 rows, 3x3 symbol sheet, 1 betline)",
 		);
+	}
+
+	/**
+	 * Get paytable.
+	 */
+	public function getPaytable() {
+		switch ($this->rules) {
+			case 'default':
+				return array(
+					array(0,0,1,2,3), array(0,0,1,2,3),
+					array(0,0,1,2,3),
+
+					array(0,0,2,3,4), array(0,0,2,3,4),
+					array(0,0,2,3,4),
+
+					array(0,0,5,6,7), array(0,0,5,6,7),
+					array(0,0,5,6,7)
+				);
+				break;
+
+			case 'oneLine':
+				return array(
+					array(0,0,1,2,3), array(0,0,1,2,3),
+					array(0,0,1,2,3), array(0,0,1,2,3),
+					array(0,0,1,2,3), array(0,0,1,2,3),
+					array(0,0,1,2,3), array(0,0,1,2,3),
+					array(0,0,1,2,3)
+				);
+				break;
+
+			default:
+				throw new Exception("Unknown rules: ".$this->rules);
+		}
 	}
 }

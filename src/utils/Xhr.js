@@ -7,6 +7,7 @@ function Xhr(url) {
 	this.url = url;
 	this.responseEncoding = Xhr.NONE;
 	this.method = "GET";
+	this.parameters = {};
 }
 
 module.exports = Xhr;
@@ -29,6 +30,13 @@ Xhr.prototype.setResponseEncoding = function(encoding) {
 }
 
 /**
+ * Set parameter.
+ */
+Xhr.prototype.setParameter = function(parameter, value) {
+	this.parameters[parameter] = value;
+}
+
+/**
  * Send.
  */
 Xhr.prototype.send = function() {
@@ -37,9 +45,21 @@ Xhr.prototype.send = function() {
 
 	this.sendThenable = new Thenable();
 
+	var url = this.url;
+
+	for (parameter in this.parameters) {
+		if (url.indexOf("?") >= 0)
+			url += "&";
+
+		else
+			url += "?";
+
+		url += parameter + "=" + encodeURIComponent(this.parameters[parameter]);
+	}
+
 	this.request = new XMLHttpRequest();
 	this.request.onreadystatechange = this.onRequestReadyStateChange.bind(this);
-	this.request.open(this.method, this.url, true);
+	this.request.open(this.method, url, true);
 	this.request.send();
 
 	return this.sendThenable;

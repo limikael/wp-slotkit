@@ -2773,9 +2773,17 @@ module.exports = {
 		[2, 1, 0, 0, 0],
 		[0, 2, 0, 2, 0]
 	],
-	paytable: {
-		"0": [1, 2, 4]
-	}
+	paytable: [
+		[0,0,2,3,4],
+		[0,0,2,3,4],
+		[0,0,2,3,4],
+		[0,0,2,3,4],
+		[0,0,2,3,4],
+		[0,0,2,3,4],
+		[0,0,10,11,12],
+		[0,0,10,11,12],
+		[0,0,10,11,12],
+	]
 };
 
 },{}],12:[function(require,module,exports){
@@ -2932,6 +2940,8 @@ GameModel.prototype.spin = function() {
 
 	this.spinRequest = new Xhr(this.options.spinUrl);
 	this.spinRequest.setResponseEncoding(Xhr.JSON);
+	this.spinRequest.setParameter("betLines", this.getUserBetLines());
+	this.spinRequest.setParameter("bet", this.getBet());
 	this.spinRequest.send().then(
 		this.onSpinRequestComplete.bind(this),
 		this.onSpinRequestError.bind(this)
@@ -3162,7 +3172,6 @@ GameModel.prototype.getBetIncrease = function() {
 }
 
 module.exports = GameModel;
-
 },{"../utils/Xhr":17,"./DefaultOptions":11,"tinp":6,"yaed":8}],13:[function(require,module,exports){
 var inherits = require("inherits");
 
@@ -3279,6 +3288,7 @@ function Xhr(url) {
 	this.url = url;
 	this.responseEncoding = Xhr.NONE;
 	this.method = "GET";
+	this.parameters = {};
 }
 
 module.exports = Xhr;
@@ -3301,6 +3311,13 @@ Xhr.prototype.setResponseEncoding = function(encoding) {
 }
 
 /**
+ * Set parameter.
+ */
+Xhr.prototype.setParameter = function(parameter, value) {
+	this.parameters[parameter] = value;
+}
+
+/**
  * Send.
  */
 Xhr.prototype.send = function() {
@@ -3309,9 +3326,21 @@ Xhr.prototype.send = function() {
 
 	this.sendThenable = new Thenable();
 
+	var url = this.url;
+
+	for (parameter in this.parameters) {
+		if (url.indexOf("?") >= 0)
+			url += "&";
+
+		else
+			url += "?";
+
+		url += parameter + "=" + encodeURIComponent(this.parameters[parameter]);
+	}
+
 	this.request = new XMLHttpRequest();
 	this.request.onreadystatechange = this.onRequestReadyStateChange.bind(this);
-	this.request.open(this.method, this.url, true);
+	this.request.open(this.method, url, true);
 	this.request.send();
 
 	return this.sendThenable;
@@ -4023,6 +4052,17 @@ PaytableEntryView.prototype.setSymbolId = function(symbolId) {
  * Set payouts.
  */
 PaytableEntryView.prototype.setPayouts = function(payouts) {
+	var s = "";
+	for (var i = 0; i < this.options.numReels; i++) {
+		if (payouts[i]) {
+			if (s)
+				s+="\n";
+
+			s += (i + 1) + ": " + payouts[i] + "x";
+		}
+	}
+
+	this.payoutField.text = s;
 	this.updateFieldPosition();
 }
 
@@ -4124,6 +4164,7 @@ PaytableView.prototype.createEntries = function() {
         entry.x = this.options.paytableOffset[0] + x * this.options.paytableColSpacing;
         entry.y = this.options.paytableOffset[1] + y * this.options.paytableRowSpacing;
         entry.setSymbolId(i);
+        entry.setPayouts(this.options.paytable[i]);
         page.addChild(entry);
 
         x++;
