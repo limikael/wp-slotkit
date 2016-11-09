@@ -30,7 +30,7 @@ module.exports = BetLineButtonsView;
 
 /**
  * Set number of bet lines.
- * @method setNumBetLines
+ * @method createBetLineButtons
  * @param {Number} num The number of bet lines available in the game.
  */
 BetLineButtonsView.prototype.createBetLineButtons = function() {
@@ -59,7 +59,12 @@ BetLineButtonsView.prototype.createBetLineButtons = function() {
 
 		button.interactive = true;
 		button.mouseover = function(num) {
-			this.selectedBetLine = num;
+			if (this.buttons[num].isEnabled())
+				this.selectedBetLine = num;
+
+			else
+				this.selectedBetLine = null;
+
 			this.trigger("selectedBetLineChange")
 		}.bind(this, i);
 		button.mouseout = function(num) {
@@ -68,6 +73,19 @@ BetLineButtonsView.prototype.createBetLineButtons = function() {
 			this.trigger("selectedBetLineChange")
 		}.bind(this, i);
 	}
+}
+
+/**
+ * Set number of enabled bet lines.
+ * @method setNumEnabledBetLines
+ */
+BetLineButtonsView.prototype.setNumEnabledBetLines = function(numLines) {
+	for (var i = 0; i < this.buttons.length; i++)
+		if (i < numLines)
+			this.buttons[i].setEnabled(true);
+
+		else
+			this.buttons[i].setEnabled(false);
 }
 
 /**

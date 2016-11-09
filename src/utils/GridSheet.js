@@ -18,8 +18,6 @@ GridSheet.prototype.createSprite = function(index) {
     var row = Math.floor(index / this.gridRows);
     var col = index % this.gridCols;
 
-
-
     t.frame = new PIXI.Rectangle(
         col * t.width / this.gridCols,
         row * t.height / this.gridRows,

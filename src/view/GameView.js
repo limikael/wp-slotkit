@@ -86,6 +86,13 @@ GameView.prototype.getSelectedBetLine = function() {
 }
 
 /**
+ * Get selected bet line.
+ */
+GameView.prototype.setNumEnabledBetLines = function(num) {
+    return this.betLineButtonsView.setNumEnabledBetLines(num);
+}
+
+/**
  * Get bet line view.
  */
 GameView.prototype.getBetLineView = function() {

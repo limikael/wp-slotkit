@@ -59,17 +59,29 @@ BetLineButton.prototype.setBetLineIndex = function(index) {
 }
 
 /**
- * Set color.
- * @method setColor
- */
-BetLineButton.prototype.setColor = function(color) {
-
-}
-
-/**
  * Set highlight.
  * @method setHighlight
  */
 BetLineButton.prototype.setHighlight = function(highlight) {
 	this.highlight.visible = highlight;
+}
+
+/**
+ * Enabled or not?
+ * @method setEnabled
+ */
+BetLineButton.prototype.setEnabled = function(enabled) {
+	if (enabled)
+		this.alpha = 1;
+
+	else
+		this.alpha = .5;
+}
+
+/**
+ * Enabled or not?
+ * @method isEnabled
+ */
+BetLineButton.prototype.isEnabled = function(enabled) {
+	return (this.alpha == 1);
 }

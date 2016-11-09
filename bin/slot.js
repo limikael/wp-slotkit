@@ -2517,19 +2517,25 @@ function GameController(options, gameView, gameModel) {
 	this.gameView.on("selectedBetLineChange", this.onSelectedBetLineChange, this);
 	this.updateKeypadButtonsEnabled();
 
+	this.gameView.setNumEnabledBetLines(this.gameModel.getUserBetLines());
+
 	this.gameModel.on("stateChange", this.updateKeypadButtonsEnabled.bind(this));
 	this.gameModel.on("displayBalanceChange", this.onDisplayBalanceChange.bind(this));
 	this.gameModel.on("betChange", this.onBetChange.bind(this));
 
 	var keypadView = this.gameView.getKeypadView();
 	keypadView.on("linesIncButtonClick", function() {
-		if (this.gameModel.getState() == "stopped")
+		if (this.gameModel.getState() == "stopped") {
 			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() + 1);
+			this.gameView.setNumEnabledBetLines(this.gameModel.getUserBetLines());
+		}
 	}.bind(this));
 
 	keypadView.on("linesDecButtonClick", function() {
-		if (this.gameModel.getState() == "stopped")
+		if (this.gameModel.getState() == "stopped") {
 			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() - 1);
+			this.gameView.setNumEnabledBetLines(this.gameModel.getUserBetLines());
+		}
 	}.bind(this));
 
 	keypadView.on("betIncButtonClick", function() {
@@ -3224,8 +3230,6 @@ GridSheet.prototype.createSprite = function(index) {
     var row = Math.floor(index / this.gridRows);
     var col = index % this.gridCols;
 
-
-
     t.frame = new PIXI.Rectangle(
         col * t.width / this.gridCols,
         row * t.height / this.gridRows,
@@ -3435,19 +3439,31 @@ BetLineButton.prototype.setBetLineIndex = function(index) {
 }
 
 /**
- * Set color.
- * @method setColor
- */
-BetLineButton.prototype.setColor = function(color) {
-
-}
-
-/**
  * Set highlight.
  * @method setHighlight
  */
 BetLineButton.prototype.setHighlight = function(highlight) {
 	this.highlight.visible = highlight;
+}
+
+/**
+ * Enabled or not?
+ * @method setEnabled
+ */
+BetLineButton.prototype.setEnabled = function(enabled) {
+	if (enabled)
+		this.alpha = 1;
+
+	else
+		this.alpha = .5;
+}
+
+/**
+ * Enabled or not?
+ * @method isEnabled
+ */
+BetLineButton.prototype.isEnabled = function(enabled) {
+	return (this.alpha == 1);
 }
 },{"inherits":1}],19:[function(require,module,exports){
 var inherits = require("inherits");
@@ -3482,7 +3498,7 @@ module.exports = BetLineButtonsView;
 
 /**
  * Set number of bet lines.
- * @method setNumBetLines
+ * @method createBetLineButtons
  * @param {Number} num The number of bet lines available in the game.
  */
 BetLineButtonsView.prototype.createBetLineButtons = function() {
@@ -3511,7 +3527,12 @@ BetLineButtonsView.prototype.createBetLineButtons = function() {
 
 		button.interactive = true;
 		button.mouseover = function(num) {
-			this.selectedBetLine = num;
+			if (this.buttons[num].isEnabled())
+				this.selectedBetLine = num;
+
+			else
+				this.selectedBetLine = null;
+
 			this.trigger("selectedBetLineChange")
 		}.bind(this, i);
 		button.mouseout = function(num) {
@@ -3520,6 +3541,19 @@ BetLineButtonsView.prototype.createBetLineButtons = function() {
 			this.trigger("selectedBetLineChange")
 		}.bind(this, i);
 	}
+}
+
+/**
+ * Set number of enabled bet lines.
+ * @method setNumEnabledBetLines
+ */
+BetLineButtonsView.prototype.setNumEnabledBetLines = function(numLines) {
+	for (var i = 0; i < this.buttons.length; i++)
+		if (i < numLines)
+			this.buttons[i].setEnabled(true);
+
+		else
+			this.buttons[i].setEnabled(false);
 }
 
 /**
@@ -3803,6 +3837,13 @@ GameView.prototype.getSelectedBetLine = function() {
 }
 
 /**
+ * Get selected bet line.
+ */
+GameView.prototype.setNumEnabledBetLines = function(num) {
+    return this.betLineButtonsView.setNumEnabledBetLines(num);
+}
+
+/**
  * Get bet line view.
  */
 GameView.prototype.getBetLineView = function() {
@@ -3868,7 +3909,6 @@ GameView.populateAssetLoader = function(options) {
     if (options.symbols)
         PIXI.loader.add(UrlUtil.makeAbsolute(options.symbols, options.baseUrl));
 }
-
 },{"../utils/UrlUtil":16,"./BetLineButtonsView":19,"./BetLineView":20,"./KeypadView":23,"./PaytableView":25,"./ReelView":26,"./SymbolView":27,"./WinView":28,"inherits":1,"yaed":8}],23:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");

@@ -15,19 +15,25 @@ function GameController(options, gameView, gameModel) {
 	this.gameView.on("selectedBetLineChange", this.onSelectedBetLineChange, this);
 	this.updateKeypadButtonsEnabled();
 
+	this.gameView.setNumEnabledBetLines(this.gameModel.getUserBetLines());
+
 	this.gameModel.on("stateChange", this.updateKeypadButtonsEnabled.bind(this));
 	this.gameModel.on("displayBalanceChange", this.onDisplayBalanceChange.bind(this));
 	this.gameModel.on("betChange", this.onBetChange.bind(this));
 
 	var keypadView = this.gameView.getKeypadView();
 	keypadView.on("linesIncButtonClick", function() {
-		if (this.gameModel.getState() == "stopped")
+		if (this.gameModel.getState() == "stopped") {
 			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() + 1);
+			this.gameView.setNumEnabledBetLines(this.gameModel.getUserBetLines());
+		}
 	}.bind(this));
 
 	keypadView.on("linesDecButtonClick", function() {
-		if (this.gameModel.getState() == "stopped")
+		if (this.gameModel.getState() == "stopped") {
 			this.gameModel.setUserBetLines(this.gameModel.getUserBetLines() - 1);
+			this.gameView.setNumEnabledBetLines(this.gameModel.getUserBetLines());
+		}
 	}.bind(this));
 
 	keypadView.on("betIncButtonClick", function() {
