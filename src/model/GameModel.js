@@ -48,6 +48,11 @@ GameModel.prototype.init = function() {
  * Init call complete.
  */
 GameModel.prototype.onInitCallComplete = function(initResponse) {
+	if (initResponse.error) {
+		this.initThenable.reject(initResponse.error);
+		return;
+	}
+
 	for (var option in initResponse)
 		this.options[option] = initResponse[option];
 

@@ -2462,8 +2462,8 @@ SlotApp.prototype.onGameModelInit = function() {
 /**
  * Game model error.
  */
-SlotApp.prototype.onGameModelError = function() {
-	throw new Error("Model initialization error.");
+SlotApp.prototype.onGameModelError = function(error) {
+	this.trigger("error",error);
 }
 
 /**
@@ -2789,7 +2789,8 @@ module.exports = {
 		[0,0,10,11,12],
 		[0,0,10,11,12],
 		[0,0,10,11,12],
-	]
+	],
+	balance: 123
 };
 
 },{}],12:[function(require,module,exports){
@@ -2843,6 +2844,11 @@ GameModel.prototype.init = function() {
  * Init call complete.
  */
 GameModel.prototype.onInitCallComplete = function(initResponse) {
+	if (initResponse.error) {
+		this.initThenable.reject(initResponse.error);
+		return;
+	}
+
 	for (var option in initResponse)
 		this.options[option] = initResponse[option];
 

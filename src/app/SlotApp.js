@@ -43,8 +43,8 @@ SlotApp.prototype.onGameModelInit = function() {
 /**
  * Game model error.
  */
-SlotApp.prototype.onGameModelError = function() {
-	throw new Error("Model initialization error.");
+SlotApp.prototype.onGameModelError = function(error) {
+	this.trigger("error",error);
 }
 
 /**

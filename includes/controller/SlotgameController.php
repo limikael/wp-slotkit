@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__."/../model/SlotUser.php";
+
 /**
  * Handle slotgame related remote calls and pages.
  */
@@ -19,18 +21,32 @@ class SlotgameController {
 	}
 
 	/**
+	 * Handle exception
+	 */
+	public function handleException($e) {
+		echo json_encode(array(
+			"error"=>$e->getMessage()
+		));
+		exit;
+	}
+
+	/**
 	 * The init call.
 	 */
 	public function init() {
+		set_exception_handler(array($this,"handleException"));
+
 		$slotgame=Slotgame::findOne($_REQUEST["id"]);
-		if (!$slotgame) {
-			echo "Game not found.";
-			exit;
-		}
+		if (!$slotgame)
+			throw new Exception("Game not found");
+
+		$slotUser=SlotUser::getCurrent();
+		if (!$slotUser)
+			throw new Exception("Not logged in");
 
 		$response=array();
 		$response["baseUrl"]=plugins_url()."/slotkit/";
-		$response["balance"]=15;
+		$response["balance"]=$slotUser->getBalance("ply");
 
 		$response["spinUrl"]=
 			admin_url("admin-ajax.php").
@@ -60,19 +76,30 @@ class SlotgameController {
 	 * The spin call.
 	 */
 	public function spin() {
-		//error_log(print_r($_REQUEST,TRUE));
+		set_exception_handler(array($this,"handleException"));
+
+		$currency="ply";
 
 		$slotgame=Slotgame::findOne($_REQUEST["id"]);
 		if (!$slotgame)
-			exit("Game not found.");
+			throw new Exception("Game not found.");
+
+		$slotUser=SlotUser::getCurrent();
+		if (!$slotUser)
+			throw new Exception("Not logged in");
+
+		$totalBet=$_REQUEST["betLines"]*$_REQUEST["bet"];
+		$slotUser->changeBalance($currency,-$totalBet);
+		$spinBalance=$slotUser->getBalance($currency);
 
 		$outcome=$slotgame->generateOutcome($_REQUEST["betLines"],$_REQUEST["bet"]);
+		$slotUser->changeBalance($currency,$outcome->getTotalWin());
 
 		echo json_encode(array(
 			"reels"=>$outcome->getReels(),
 			"betLineWins"=>$outcome->getBetLineWins(),
-			"balance"=>555,
-			"spinBalance"=>1001
+			"balance"=>$slotUser->getBalance($currency),
+			"spinBalance"=>$spinBalance
 		));
 		exit;
 	}
