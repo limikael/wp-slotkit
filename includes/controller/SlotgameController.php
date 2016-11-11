@@ -57,7 +57,7 @@ class SlotgameController {
 			throw new Exception("Not logged in");
 
 		$response=array();
-		$response["baseUrl"]=plugins_url()."/slotkit/";
+		$response["baseUrl"]=plugins_url()."/wp-slotkit/";
 		$response["balance"]=$slotUser->getBalance("ply");
 
 		$response["spinUrl"]=
@@ -124,13 +124,13 @@ class SlotgameController {
 		if (!$slotgame)
 			return "Game not found, id=".$params["id"];
 
-		wp_enqueue_script("bundleloader",plugins_url()."/slotkit/bin/bundleloader.min.js");
-		wp_enqueue_script("wpslot",plugins_url()."/slotkit/bin/wpslot.js");
+		wp_enqueue_script("bundleloader",plugins_url()."/wp-slotkit/bin/bundleloader.min.js");
+		wp_enqueue_script("wpslot",plugins_url()."/wp-slotkit/bin/wpslot.js");
 
 		$content="";
 		$content.="<div id='slotgame' style='width:100%; height:1px; position:relative'></div>\n";
 		$content.="<script>\n";
-		$content.="SLOTKIT_BASEURL='".plugins_url()."/slotkit/'\n";
+		$content.="SLOTKIT_BASEURL='".plugins_url()."/wp-slotkit/'\n";
 		$content.="SLOTKIT_INITURL='".
 			admin_url("admin-ajax.php").
 			"?action=slotkit_init&id=".
