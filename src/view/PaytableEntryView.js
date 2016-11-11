@@ -31,8 +31,10 @@ PaytableEntryView.prototype.setSymbolId = function(symbolId) {
 	if (this.symbol)
 		this.removeChild(this.symbol);
 
-	var imageId = SymbolView.generateSymbolFrameId(this.options.baseUrl + this.options.symbolFormat, symbolId);
-	this.symbol = PIXI.Sprite.fromImage(imageId);
+    this.symbol = SymbolView.getSymbolSheet(this.options).createSprite(symbolId);
+
+/*	var imageId = SymbolView.generateSymbolFrameId(this.options.baseUrl + this.options.symbolFormat, symbolId);
+	this.symbol = PIXI.Sprite.fromImage(imageId);*/
 	this.addChild(this.symbol);
 
 	this.updateFieldPosition();

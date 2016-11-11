@@ -13,7 +13,7 @@ function SymbolView(options) {
         throw new Error("No symbols");
 
     if (!SymbolView.symbolSheet)
-        SymbolView.symbolSheet={};
+        SymbolView.symbolSheet = {};
 
     if (!SymbolView.symbolSheet[this.options.symbols]) {
         var u = UrlUtil.makeAbsolute(this.options.symbols, this.options.baseUrl);
@@ -25,9 +25,23 @@ function SymbolView(options) {
 inherits(SymbolView, PIXI.Container);
 module.exports = SymbolView;
 
+SymbolView.getSymbolSheet = function(options) {
+    if (!SymbolView.symbolSheet)
+        SymbolView.symbolSheet = {};
+
+    if (!SymbolView.symbolSheet[options.symbols]) {
+        var u = UrlUtil.makeAbsolute(options.symbols, options.baseUrl);
+        var t = PIXI.Texture.fromFrame(u);
+        SymbolView.symbolSheet[options.symbols] = new GridSheet(t);
+    }
+
+    return SymbolView.symbolSheet[options.symbols]
+}
+
 SymbolView.prototype.setSymbolId = function(symbolId) {
     this.symbolId = symbolId;
-    var symbol = SymbolView.symbolSheet[this.options.symbols].createSprite(symbolId);
+
+    var symbol = SymbolView.getSymbolSheet(this.options).createSprite(symbolId);
 
     symbol.x = -symbol.width / 2;
     symbol.y = -symbol.height / 2;

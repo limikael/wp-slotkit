@@ -4,8 +4,8 @@ require_once __DIR__."/includes/plugin/SlotkitPlugin.php";
 
 /*
 Plugin Name: Slot Kit
-Plugin URI: https://github.com/limikael/slotkit
-GitHub Plugin URI: https://github.com/limikael/slotkit
+Plugin URI: https://github.com/limikael/wp-slotkit
+GitHub Plugin URI: https://github.com/limikael/wp-slotkit
 Description: Create slot games for your users.
 Version: 0.0.1
 */
@@ -26,3 +26,9 @@ SlotkitPlugin::getInstance();
 
 add_filter( 'widget_text', 'shortcode_unautop');
 add_filter( 'widget_text', 'do_shortcode');
+
+if (class_exists("WP_CLI")) {
+	require_once __DIR__."/includes/controller/SlotSimulationController.php";
+
+	WP_CLI::add_command("slotsimulation",array(SlotSimulationController::instance(),'slotsimulation'));
+}

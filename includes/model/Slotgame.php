@@ -54,6 +54,14 @@ class Slotgame extends WpRecord {
 	}
 
 	/**
+	 * Get number of bet lines.
+	 */
+	public function getNumBetLines() {
+		$betLines=$this->getBetLines();
+		return sizeof($betLines);
+	}
+
+	/**
 	 * Get number of reels.
 	 */
 	public function getNumReels() {
@@ -98,14 +106,14 @@ class Slotgame extends WpRecord {
 		switch ($this->rules) {
 			case 'default':
 				return array(
-					array(0,0,1,2,3), array(0,0,1,2,3),
-					array(0,0,1,2,3),
+					array(0,0,30,150,1000), array(0,0,30,150,1000),
+					array(0,0,30,150,1000),
 
-					array(0,0,2,3,4), array(0,0,2,3,4),
-					array(0,0,2,3,4),
+					array(0,0,40,200,1500), array(0,0,40,200,1500),
+					array(0,0,40,200,1500),
 
-					array(0,0,5,6,7), array(0,0,5,6,7),
-					array(0,0,5,6,7)
+					array(0,0,50,250,2500), array(0,0,50,250,2500),
+					array(0,0,50,250,2500)
 				);
 				break;
 

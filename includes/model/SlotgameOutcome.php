@@ -39,6 +39,14 @@ class SlotgameOutcome {
 	}
 
 	/**
+	 * Get total bet.
+	 */
+	public function getTotalBet() {
+		return $this->bet*$this->numBetLines;
+	}
+
+
+	/**
 	 * Check a betline by index.
 	 */
 	private function checkBetLine($betLineIndex) {
