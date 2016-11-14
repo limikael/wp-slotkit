@@ -27,16 +27,16 @@ function ButtonHighlight(options, radius) {
 		this.alpha = .5;
 	}.bind(this)
 
-	this.mouseout = function() {
+	this.mouseout = this.touchend = function() {
 		this.alpha = 0;
 	}.bind(this)
 
-	this.mousedown = function() {
+	this.mousedown = this.touchstart = function() {
 		this.brightnessFilter.brightness = 0;
 		this.alpha = .5;
 	}.bind(this)
 
-	this.click = function() {
+	this.click = this.tap = function() {
 		this.trigger("click");
 	}.bind(this);
 }
