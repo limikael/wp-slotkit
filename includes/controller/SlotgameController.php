@@ -36,6 +36,7 @@ class SlotgameController {
 	 * Handle exception
 	 */
 	public function handleException($e) {
+		http_response_code(500);
 		echo json_encode(array(
 			"error"=>$e->getMessage()
 		));

@@ -2435,8 +2435,13 @@ function SlotApp(options) {
 	this.matte = true;
 
 	this.gameModel = new GameModel(options);
-	this.gameModel.on("displayBalanceChange",function() {
-		this.trigger("balance",this.gameModel.getDisplayBalance());
+	this.gameModel.on("displayBalanceChange", function() {
+		this.trigger("balance", this.gameModel.getDisplayBalance());
+	}.bind(this));
+
+	this.gameModel.on("error", function(e) {
+		console.log("game model error: " + e);
+		this.trigger("error", e);
 	}.bind(this));
 
 	this.gameModel.init().then(
@@ -2467,7 +2472,7 @@ SlotApp.prototype.onGameModelInit = function() {
  * Game model error.
  */
 SlotApp.prototype.onGameModelError = function(error) {
-	this.trigger("error",error);
+	this.trigger("error", error);
 }
 
 /**
@@ -2865,7 +2870,7 @@ GameModel.prototype.onInitCallComplete = function(initResponse) {
 }
 
 /**
- *
+ * Init call failed.
  */
 GameModel.prototype.onInitCallError = function(e) {
 	this.initThenable.reject("Init call failed: " + e);
@@ -3024,6 +3029,7 @@ GameModel.prototype.onSpinRequestError = function(error) {
 	this.trigger("stateChange");
 	this.trigger("displayBalanceChange");
 	this.trigger("betChange");
+	this.trigger("error",error);
 }
 
 /**
@@ -3381,11 +3387,6 @@ Xhr.prototype.onRequestReadyStateChange = function() {
 	if (this.request.readyState != 4)
 		return;
 
-	if (this.request.status != 200) {
-		this.sendThenable.reject(request.statusText);
-		return;
-	}
-
 	this.response = this.request.responseText;
 
 	switch (this.responseEncoding) {
@@ -3397,6 +3398,18 @@ Xhr.prototype.onRequestReadyStateChange = function() {
 				return;
 			}
 			break;
+	}
+
+	if (this.response.error || this.request.status != 200) {
+		if (this.response.error)
+			this.sendThenable.reject(this.response.error);
+
+		else if (this.response)
+			this.sendThenable.reject(this.response);
+
+		else
+			this.sendThenable.reject(this.request.statusText);
+		return;
 	}
 
 	this.sendThenable.resolve(this.response);

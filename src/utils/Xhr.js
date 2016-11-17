@@ -72,11 +72,6 @@ Xhr.prototype.onRequestReadyStateChange = function() {
 	if (this.request.readyState != 4)
 		return;
 
-	if (this.request.status != 200) {
-		this.sendThenable.reject(request.statusText);
-		return;
-	}
-
 	this.response = this.request.responseText;
 
 	switch (this.responseEncoding) {
@@ -88,6 +83,18 @@ Xhr.prototype.onRequestReadyStateChange = function() {
 				return;
 			}
 			break;
+	}
+
+	if (this.response.error || this.request.status != 200) {
+		if (this.response.error)
+			this.sendThenable.reject(this.response.error);
+
+		else if (this.response)
+			this.sendThenable.reject(this.response);
+
+		else
+			this.sendThenable.reject(this.request.statusText);
+		return;
 	}
 
 	this.sendThenable.resolve(this.response);

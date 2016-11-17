@@ -61,7 +61,7 @@ GameModel.prototype.onInitCallComplete = function(initResponse) {
 }
 
 /**
- *
+ * Init call failed.
  */
 GameModel.prototype.onInitCallError = function(e) {
 	this.initThenable.reject("Init call failed: " + e);
@@ -220,6 +220,7 @@ GameModel.prototype.onSpinRequestError = function(error) {
 	this.trigger("stateChange");
 	this.trigger("displayBalanceChange");
 	this.trigger("betChange");
+	this.trigger("error",error);
 }
 
 /**

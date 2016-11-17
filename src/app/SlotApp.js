@@ -16,8 +16,13 @@ function SlotApp(options) {
 	this.matte = true;
 
 	this.gameModel = new GameModel(options);
-	this.gameModel.on("displayBalanceChange",function() {
-		this.trigger("balance",this.gameModel.getDisplayBalance());
+	this.gameModel.on("displayBalanceChange", function() {
+		this.trigger("balance", this.gameModel.getDisplayBalance());
+	}.bind(this));
+
+	this.gameModel.on("error", function(e) {
+		console.log("game model error: " + e);
+		this.trigger("error", e);
 	}.bind(this));
 
 	this.gameModel.init().then(
@@ -48,7 +53,7 @@ SlotApp.prototype.onGameModelInit = function() {
  * Game model error.
  */
 SlotApp.prototype.onGameModelError = function(error) {
-	this.trigger("error",error);
+	this.trigger("error", error);
 }
 
 /**
