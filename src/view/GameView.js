@@ -6,6 +6,7 @@ var BetLineView = require("./BetLineView");
 var WinView = require("./WinView");
 var KeypadView = require("./KeypadView");
 var SymbolView = require("./SymbolView");
+var FlashMessageView = require("./FlashMessageView");
 var PaytableView = require("./PaytableView");
 var UrlUtil = require("../utils/UrlUtil");
 
@@ -48,6 +49,9 @@ function GameView(options) {
     this.winView = new WinView(this.options);
     this.addChild(this.winView);
 
+    this.flashMessageView = new FlashMessageView(this.options);
+    this.addChild(this.flashMessageView);
+
     this.paytableView = new PaytableView(this.options);
     this.addChild(this.paytableView);
 }
@@ -55,6 +59,13 @@ function GameView(options) {
 inherits(GameView, PIXI.Container);
 EventDispatcher.init(GameView);
 module.exports = GameView;
+
+/**
+ * Get flashing message.
+ */
+GameView.prototype.setFlashMessage = function(message) {
+    this.flashMessageView.setMessage(message);
+}
 
 /**
  * Highlight a bet line.

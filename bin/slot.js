@@ -2503,7 +2503,7 @@ SlotApp.prototype.onAssetsError = function(ev) {
 	this.trigger("error", "ERROR LOADING ASSETS");
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":22,"../view/SymbolView":27,"inherits":1,"pixiapp":3,"tween.js":7,"yaed":8}],10:[function(require,module,exports){
+},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":23,"../view/SymbolView":28,"inherits":1,"pixiapp":3,"tween.js":7,"yaed":8}],10:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -2568,6 +2568,8 @@ function GameController(options, gameView, gameModel) {
 	});
 
 	paytableView.hide();
+
+	this.gameView.setFlashMessage(this.gameModel.getFlashMessage());
 }
 
 module.exports = GameController;
@@ -2794,7 +2796,9 @@ module.exports = {
 		[0,0,10,11,12],
 		[0,0,10,11,12],
 	],
-	balance: 123
+	balance: 123,
+	balanceText: null,
+	flashMessage: null
 };
 
 },{}],12:[function(require,module,exports){
@@ -3100,9 +3104,19 @@ GameModel.prototype.getAccumulatedWinAmount = function(winIndex) {
 }
 
 /**
+ * Get flash message.
+ */
+GameModel.prototype.getFlashMessage = function() {
+	return this.options.flashMessage;
+}
+
+/**
  * Get the balance that should be displayed depending on state.
  */
 GameModel.prototype.getDisplayBalance = function() {
+	if (this.options.balanceText)
+		return this.options.balanceText;
+
 	switch (this.state) {
 		case "stopped":
 			return this.balance;
@@ -3760,6 +3774,63 @@ ButtonHighlight.prototype.setEnabled = function(enabled) {
 }
 },{"../utils/BrightnessFilter":13,"../utils/PixiUtil":15,"inherits":1,"yaed":8}],22:[function(require,module,exports){
 var inherits = require("inherits");
+
+/**
+ * The keypad.
+ */
+function FlashMessageView(options) {
+	PIXI.Container.call(this);
+	this.options = options;
+
+	var style = {
+		font: "bold 40px sans",
+		fill: "#ff0000"
+	}
+
+	this.messageField = new PIXI.Text("HELLO", style);
+	this.messageField.alpha = .5;
+	this.messageField.y = 360;
+	this.addChild(this.messageField);
+
+	this.timeoutId = null;
+	this.flash();
+}
+
+inherits(FlashMessageView, PIXI.Container);
+module.exports = FlashMessageView;
+
+/**
+ * Set message.
+ */
+FlashMessageView.prototype.setMessage = function(message) {
+	if (!message)
+		message = "";
+
+	this.messageField.text = message;
+
+	this.messageField.x = 1024 / 2 - this.messageField.width / 2;
+}
+
+/**
+ * Force flash.
+ */
+FlashMessageView.prototype.flash = function() {
+	if (this.timeoutId)
+		clearTimeout(this.timeoutId);
+
+	this.messageField.visible = true;
+	setTimeout(this.onFlashTimeout.bind(this), 1000);
+}
+
+/**
+ * Flash timeout.
+ */
+FlashMessageView.prototype.onFlashTimeout = function() {
+	this.messageField.visible = !this.messageField.visible;
+	setTimeout(this.onFlashTimeout.bind(this), 1000);
+}
+},{"inherits":1}],23:[function(require,module,exports){
+var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ReelView = require("./ReelView");
 var BetLineButtonsView = require("./BetLineButtonsView");
@@ -3767,6 +3838,7 @@ var BetLineView = require("./BetLineView");
 var WinView = require("./WinView");
 var KeypadView = require("./KeypadView");
 var SymbolView = require("./SymbolView");
+var FlashMessageView = require("./FlashMessageView");
 var PaytableView = require("./PaytableView");
 var UrlUtil = require("../utils/UrlUtil");
 
@@ -3809,6 +3881,9 @@ function GameView(options) {
     this.winView = new WinView(this.options);
     this.addChild(this.winView);
 
+    this.flashMessageView = new FlashMessageView(this.options);
+    this.addChild(this.flashMessageView);
+
     this.paytableView = new PaytableView(this.options);
     this.addChild(this.paytableView);
 }
@@ -3816,6 +3891,13 @@ function GameView(options) {
 inherits(GameView, PIXI.Container);
 EventDispatcher.init(GameView);
 module.exports = GameView;
+
+/**
+ * Get flashing message.
+ */
+GameView.prototype.setFlashMessage = function(message) {
+    this.flashMessageView.setMessage(message);
+}
 
 /**
  * Highlight a bet line.
@@ -3919,7 +4001,7 @@ GameView.populateAssetLoader = function(options) {
     if (options.symbols)
         PIXI.loader.add(UrlUtil.makeAbsolute(options.symbols, options.baseUrl));
 }
-},{"../utils/UrlUtil":16,"./BetLineButtonsView":19,"./BetLineView":20,"./KeypadView":23,"./PaytableView":25,"./ReelView":26,"./SymbolView":27,"./WinView":28,"inherits":1,"yaed":8}],23:[function(require,module,exports){
+},{"../utils/UrlUtil":16,"./BetLineButtonsView":19,"./BetLineView":20,"./FlashMessageView":22,"./KeypadView":24,"./PaytableView":26,"./ReelView":27,"./SymbolView":28,"./WinView":29,"inherits":1,"yaed":8}],24:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -4057,7 +4139,7 @@ KeypadView.prototype.setLines = function(lines) {
 	this.linesField.text = lines;
 	this.updateFieldPositions();
 }
-},{"./ButtonHighlight":21,"inherits":1,"yaed":8}],24:[function(require,module,exports){
+},{"./ButtonHighlight":21,"inherits":1,"yaed":8}],25:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 
@@ -4126,7 +4208,7 @@ PaytableEntryView.prototype.updateFieldPosition = function() {
 	this.payoutField.x = this.symbol.width + 20;
 	this.payoutField.y = (this.symbol.height - this.payoutField.height) / 2;
 }
-},{"./SymbolView":27,"inherits":1}],25:[function(require,module,exports){
+},{"./SymbolView":28,"inherits":1}],26:[function(require,module,exports){
 var inherits = require("inherits");
 var PaytableEntryView = require("./PaytableEntryView");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -4268,7 +4350,7 @@ PaytableView.prototype.getCurrentPageIndex = function() {
     return this.currentPageIndex;
 }
 
-},{"../utils/UrlUtil":16,"./ButtonHighlight":21,"./PaytableEntryView":24,"inherits":1,"yaed":8}],26:[function(require,module,exports){
+},{"../utils/UrlUtil":16,"./ButtonHighlight":21,"./PaytableEntryView":25,"inherits":1,"yaed":8}],27:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 var PixiUtil = require("../utils/PixiUtil");
@@ -4456,7 +4538,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween.start();
 	}
 }
-},{"../utils/PixiUtil":15,"./SymbolView":27,"inherits":1,"tinp":6,"tween.js":7}],27:[function(require,module,exports){
+},{"../utils/PixiUtil":15,"./SymbolView":28,"inherits":1,"tinp":6,"tween.js":7}],28:[function(require,module,exports){
 var inherits = require("inherits");
 var TWEEN = require("tween.js");
 var Thenable = require("tinp");
@@ -4550,7 +4632,7 @@ SymbolView.prototype.playBetLineWin = function() {
 
     return thenable;
 }
-},{"../utils/GridSheet":14,"../utils/UrlUtil":16,"inherits":1,"tinp":6,"tween.js":7}],28:[function(require,module,exports){
+},{"../utils/GridSheet":14,"../utils/UrlUtil":16,"inherits":1,"tinp":6,"tween.js":7}],29:[function(require,module,exports){
 var inherits = require("inherits");
 var Thenable = require("tinp");
 var TWEEN = require("tween.js");

@@ -62,6 +62,8 @@ function GameController(options, gameView, gameModel) {
 	});
 
 	paytableView.hide();
+
+	this.gameView.setFlashMessage(this.gameModel.getFlashMessage());
 }
 
 module.exports = GameController;

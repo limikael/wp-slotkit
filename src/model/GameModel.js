@@ -300,9 +300,19 @@ GameModel.prototype.getAccumulatedWinAmount = function(winIndex) {
 }
 
 /**
+ * Get flash message.
+ */
+GameModel.prototype.getFlashMessage = function() {
+	return this.options.flashMessage;
+}
+
+/**
  * Get the balance that should be displayed depending on state.
  */
 GameModel.prototype.getDisplayBalance = function() {
+	if (this.options.balanceText)
+		return this.options.balanceText;
+
 	switch (this.state) {
 		case "stopped":
 			return this.balance;

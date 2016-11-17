@@ -52,18 +52,29 @@ class SlotgameController {
 		if (!$slotgame)
 			throw new Exception("Game not found");
 
-		$slotUser=SlotUser::getCurrent();
-		if (!$slotUser)
-			throw new Exception("Not logged in");
-
 		$response=array();
 		$response["baseUrl"]=plugins_url()."/wp-slotkit/";
-		$response["balance"]=$slotUser->getBalance("ply");
+
+		$slotUser=SlotUser::getCurrent();
+		if ($slotUser) {
+			$response["balance"]=$slotUser->getBalance("ply");
+			$currency="ply";
+
+			if ($currency="ply")
+				$response["flashMessage"]="PLAYING FOR FUN";
+		}
+
+		else {
+			$response["flashMessage"]="NOT LOGGED IN";
+			$response["balanceText"]="DEMO";
+			$currency="none";
+		}
 
 		$response["spinUrl"]=
 			admin_url("admin-ajax.php").
 			"?action=slotkit_spin".
-			"&id=".$_REQUEST["id"];
+			"&id=".$_REQUEST["id"].
+			"&currency=".$currency;
 
 		if ($slotgame->backgroundUrl)
 			$response["background"]=$slotgame->backgroundUrl;
@@ -90,29 +101,36 @@ class SlotgameController {
 	public function spin() {
 		set_exception_handler(array($this,"handleException"));
 
-		$currency="ply";
+		$currency=$_REQUEST["currency"];
+		if (!$currency)
+			throw new Exception("No currency");
 
 		$slotgame=Slotgame::findOne($_REQUEST["id"]);
 		if (!$slotgame)
 			throw new Exception("Game not found.");
 
 		$slotUser=SlotUser::getCurrent();
-		if (!$slotUser)
+		if (!$slotUser && $currency!="none")
 			throw new Exception("Not logged in");
 
 		$totalBet=$_REQUEST["betLines"]*$_REQUEST["bet"];
-		$slotUser->changeBalance($currency,-$totalBet);
-		$spinBalance=$slotUser->getBalance($currency);
+		$response=array();
+
+		if ($slotUser) {
+			$slotUser->changeBalance($currency,-$totalBet);
+			$response["spinBalance"]=$slotUser->getBalance($currency);
+		}
 
 		$outcome=$slotgame->generateOutcome($_REQUEST["betLines"],$_REQUEST["bet"]);
-		$slotUser->changeBalance($currency,$outcome->getTotalWin());
+		$response["reels"]=$outcome->getReels();
+		$response["betLineWins"]=$outcome->getBetLineWins();
 
-		echo json_encode(array(
-			"reels"=>$outcome->getReels(),
-			"betLineWins"=>$outcome->getBetLineWins(),
-			"balance"=>$slotUser->getBalance($currency),
-			"spinBalance"=>$spinBalance
-		));
+		if ($slotUser) {
+			$slotUser->changeBalance($currency,$outcome->getTotalWin());
+			$response["balance"]=$slotUser->getBalance($currency);
+		}
+
+		echo json_encode($response);
 		exit;
 	}
 

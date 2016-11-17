@@ -76,5 +76,7 @@ module.exports = {
 		[0,0,10,11,12],
 		[0,0,10,11,12],
 	],
-	balance: 123
+	balance: 123,
+	balanceText: null,
+	flashMessage: null
 };
