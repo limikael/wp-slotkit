@@ -17,7 +17,7 @@ function GameController(options, gameView, gameModel) {
 
 	this.gameView.setNumEnabledBetLines(this.gameModel.getUserBetLines());
 
-	this.gameModel.on("stateChange", this.updateKeypadButtonsEnabled.bind(this));
+	this.gameModel.on("stateChange", this.onGameModelStateChange.bind(this));
 	this.gameModel.on("displayBalanceChange", this.onDisplayBalanceChange.bind(this));
 	this.gameModel.on("betChange", this.onBetChange.bind(this));
 
@@ -64,9 +64,20 @@ function GameController(options, gameView, gameModel) {
 	paytableView.hide();
 
 	this.gameView.setFlashMessage(this.gameModel.getFlashMessage());
+	this.showDialogIfApplicable();
 }
 
 module.exports = GameController;
+
+/**
+ * Game model state change.
+ */
+GameController.prototype.onGameModelStateChange = function() {
+	this.updateKeypadButtonsEnabled();
+
+	if (this.gameModel.getState() == "stopped")
+		this.showDialogIfApplicable();
+}
 
 /**
  * Selected bet line change.
@@ -77,12 +88,27 @@ GameController.prototype.onSelectedBetLineChange = function() {
 }
 
 /**
+ * Show the dialog if it should be shown.
+ */
+GameController.prototype.showDialogIfApplicable = function() {
+	if (!this.gameModel.getDisplayBalance())
+		this.gameView.showDialog(
+			"You are currently out of funds,\nplease top up your account!"
+		);
+}
+
+/**
  * Update enabled state of the spin button.
  */
 GameController.prototype.updateKeypadButtonsEnabled = function() {
 	switch (this.gameModel.getState()) {
 		case "stopped":
-			this.gameView.setSpinButtonEnabled(true);
+			if (this.gameModel.getDisplayBalance())
+				this.gameView.setSpinButtonEnabled(true);
+
+			else
+				this.gameView.setSpinButtonEnabled(false);
+
 			this.gameView.setBetButtonsEnabled(true);
 			break;
 

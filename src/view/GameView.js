@@ -9,6 +9,7 @@ var SymbolView = require("./SymbolView");
 var FlashMessageView = require("./FlashMessageView");
 var PaytableView = require("./PaytableView");
 var UrlUtil = require("../utils/UrlUtil");
+var DialogView = require("./DialogView");
 
 /**
  * The main view of the game.
@@ -52,6 +53,9 @@ function GameView(options) {
     this.flashMessageView = new FlashMessageView(this.options);
     this.addChild(this.flashMessageView);
 
+    this.dialogView = new DialogView(this.options);
+    this.addChild(this.dialogView);
+
     this.paytableView = new PaytableView(this.options);
     this.addChild(this.paytableView);
 }
@@ -59,6 +63,13 @@ function GameView(options) {
 inherits(GameView, PIXI.Container);
 EventDispatcher.init(GameView);
 module.exports = GameView;
+
+/**
+ * Show dialog.
+ */
+GameView.prototype.showDialog = function(message) {
+    this.dialogView.show(message);
+}
 
 /**
  * Get flashing message.

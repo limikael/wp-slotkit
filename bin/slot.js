@@ -2508,7 +2508,7 @@ SlotApp.prototype.onAssetsError = function(ev) {
 	this.trigger("error", "ERROR LOADING ASSETS");
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":23,"../view/SymbolView":28,"inherits":1,"pixiapp":3,"tween.js":7,"yaed":8}],10:[function(require,module,exports){
+},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":24,"../view/SymbolView":29,"inherits":1,"pixiapp":3,"tween.js":7,"yaed":8}],10:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -2528,7 +2528,7 @@ function GameController(options, gameView, gameModel) {
 
 	this.gameView.setNumEnabledBetLines(this.gameModel.getUserBetLines());
 
-	this.gameModel.on("stateChange", this.updateKeypadButtonsEnabled.bind(this));
+	this.gameModel.on("stateChange", this.onGameModelStateChange.bind(this));
 	this.gameModel.on("displayBalanceChange", this.onDisplayBalanceChange.bind(this));
 	this.gameModel.on("betChange", this.onBetChange.bind(this));
 
@@ -2575,9 +2575,20 @@ function GameController(options, gameView, gameModel) {
 	paytableView.hide();
 
 	this.gameView.setFlashMessage(this.gameModel.getFlashMessage());
+	this.showDialogIfApplicable();
 }
 
 module.exports = GameController;
+
+/**
+ * Game model state change.
+ */
+GameController.prototype.onGameModelStateChange = function() {
+	this.updateKeypadButtonsEnabled();
+
+	if (this.gameModel.getState() == "stopped")
+		this.showDialogIfApplicable();
+}
 
 /**
  * Selected bet line change.
@@ -2588,12 +2599,27 @@ GameController.prototype.onSelectedBetLineChange = function() {
 }
 
 /**
+ * Show the dialog if it should be shown.
+ */
+GameController.prototype.showDialogIfApplicable = function() {
+	if (!this.gameModel.getDisplayBalance())
+		this.gameView.showDialog(
+			"You are currently out of funds,\nplease top up your account!"
+		);
+}
+
+/**
  * Update enabled state of the spin button.
  */
 GameController.prototype.updateKeypadButtonsEnabled = function() {
 	switch (this.gameModel.getState()) {
 		case "stopped":
-			this.gameView.setSpinButtonEnabled(true);
+			if (this.gameModel.getDisplayBalance())
+				this.gameView.setSpinButtonEnabled(true);
+
+			else
+				this.gameView.setSpinButtonEnabled(false);
+
 			this.gameView.setBetButtonsEnabled(true);
 			break;
 
@@ -3789,6 +3815,52 @@ ButtonHighlight.prototype.setEnabled = function(enabled) {
 var inherits = require("inherits");
 
 /**
+ * Dialog.
+ */
+function DialogView(options) {
+	PIXI.Container.call(this);
+	this.options = options;
+
+	var style = {
+		font: "bold 30px sans",
+		fill: "#ffffff",
+		dropShadow: true,
+		dropShadowColor: "#000000",
+		dropShadowDistance: 0,
+		dropShadowBlur: 5,
+		dropShadowAngle: Math.PI / 4,
+		stroke: "#000000",
+		strokeThickness: 3,
+		align: "center"
+
+	}
+
+	this.messageField = new PIXI.Text("HELLO", style);
+	this.messageField.y = 190;
+	this.addChild(this.messageField);
+
+	this.visible = false;
+}
+
+inherits(DialogView, PIXI.Container);
+module.exports = DialogView;
+
+/**
+ * Set message.
+ */
+DialogView.prototype.show = function(message) {
+	console.log("show");
+	if (!message)
+		message = "";
+
+	this.visible = true;
+	this.messageField.text = message;
+	this.messageField.x = 1024 / 2 - this.messageField.width / 2;
+}
+},{"inherits":1}],23:[function(require,module,exports){
+var inherits = require("inherits");
+
+/**
  * The keypad.
  */
 function FlashMessageView(options) {
@@ -3842,7 +3914,7 @@ FlashMessageView.prototype.onFlashTimeout = function() {
 	this.messageField.visible = !this.messageField.visible;
 	setTimeout(this.onFlashTimeout.bind(this), 1000);
 }
-},{"inherits":1}],23:[function(require,module,exports){
+},{"inherits":1}],24:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ReelView = require("./ReelView");
@@ -3854,6 +3926,7 @@ var SymbolView = require("./SymbolView");
 var FlashMessageView = require("./FlashMessageView");
 var PaytableView = require("./PaytableView");
 var UrlUtil = require("../utils/UrlUtil");
+var DialogView = require("./DialogView");
 
 /**
  * The main view of the game.
@@ -3897,6 +3970,9 @@ function GameView(options) {
     this.flashMessageView = new FlashMessageView(this.options);
     this.addChild(this.flashMessageView);
 
+    this.dialogView = new DialogView(this.options);
+    this.addChild(this.dialogView);
+
     this.paytableView = new PaytableView(this.options);
     this.addChild(this.paytableView);
 }
@@ -3904,6 +3980,13 @@ function GameView(options) {
 inherits(GameView, PIXI.Container);
 EventDispatcher.init(GameView);
 module.exports = GameView;
+
+/**
+ * Show dialog.
+ */
+GameView.prototype.showDialog = function(message) {
+    this.dialogView.show(message);
+}
 
 /**
  * Get flashing message.
@@ -4014,7 +4097,7 @@ GameView.populateAssetLoader = function(options) {
     if (options.symbols)
         PIXI.loader.add(UrlUtil.makeAbsolute(options.symbols, options.baseUrl));
 }
-},{"../utils/UrlUtil":16,"./BetLineButtonsView":19,"./BetLineView":20,"./FlashMessageView":22,"./KeypadView":24,"./PaytableView":26,"./ReelView":27,"./SymbolView":28,"./WinView":29,"inherits":1,"yaed":8}],24:[function(require,module,exports){
+},{"../utils/UrlUtil":16,"./BetLineButtonsView":19,"./BetLineView":20,"./DialogView":22,"./FlashMessageView":23,"./KeypadView":25,"./PaytableView":27,"./ReelView":28,"./SymbolView":29,"./WinView":30,"inherits":1,"yaed":8}],25:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -4152,7 +4235,7 @@ KeypadView.prototype.setLines = function(lines) {
 	this.linesField.text = lines;
 	this.updateFieldPositions();
 }
-},{"./ButtonHighlight":21,"inherits":1,"yaed":8}],25:[function(require,module,exports){
+},{"./ButtonHighlight":21,"inherits":1,"yaed":8}],26:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 
@@ -4221,7 +4304,7 @@ PaytableEntryView.prototype.updateFieldPosition = function() {
 	this.payoutField.x = this.symbol.width + 20;
 	this.payoutField.y = (this.symbol.height - this.payoutField.height) / 2;
 }
-},{"./SymbolView":28,"inherits":1}],26:[function(require,module,exports){
+},{"./SymbolView":29,"inherits":1}],27:[function(require,module,exports){
 var inherits = require("inherits");
 var PaytableEntryView = require("./PaytableEntryView");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -4363,7 +4446,7 @@ PaytableView.prototype.getCurrentPageIndex = function() {
     return this.currentPageIndex;
 }
 
-},{"../utils/UrlUtil":16,"./ButtonHighlight":21,"./PaytableEntryView":25,"inherits":1,"yaed":8}],27:[function(require,module,exports){
+},{"../utils/UrlUtil":16,"./ButtonHighlight":21,"./PaytableEntryView":26,"inherits":1,"yaed":8}],28:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 var PixiUtil = require("../utils/PixiUtil");
@@ -4551,7 +4634,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween.start();
 	}
 }
-},{"../utils/PixiUtil":15,"./SymbolView":28,"inherits":1,"tinp":6,"tween.js":7}],28:[function(require,module,exports){
+},{"../utils/PixiUtil":15,"./SymbolView":29,"inherits":1,"tinp":6,"tween.js":7}],29:[function(require,module,exports){
 var inherits = require("inherits");
 var TWEEN = require("tween.js");
 var Thenable = require("tinp");
@@ -4645,7 +4728,7 @@ SymbolView.prototype.playBetLineWin = function() {
 
     return thenable;
 }
-},{"../utils/GridSheet":14,"../utils/UrlUtil":16,"inherits":1,"tinp":6,"tween.js":7}],29:[function(require,module,exports){
+},{"../utils/GridSheet":14,"../utils/UrlUtil":16,"inherits":1,"tinp":6,"tween.js":7}],30:[function(require,module,exports){
 var inherits = require("inherits");
 var Thenable = require("tinp");
 var TWEEN = require("tween.js");
