@@ -11,18 +11,18 @@ Version: 0.0.1
 */
 
 function slotkit_activate() {
-	SlotkitPlugin::getInstance()->activate();
+	SlotkitPlugin::instance()->activate();
 }
 
 register_activation_hook(__FILE__, "slotkit_activate");
 
 function slotkit_uninstall() {
-	SlotkitPlugin::getInstance()->uninstall();
+	SlotkitPlugin::instance()->uninstall();
 }
 
 register_uninstall_hook(__FILE__, "slotkit_uninstall");
 
-SlotkitPlugin::getInstance();
+SlotkitPlugin::instance();
 
 add_filter( 'widget_text', 'shortcode_unautop');
 add_filter( 'widget_text', 'do_shortcode');

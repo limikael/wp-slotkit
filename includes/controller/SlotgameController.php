@@ -1,6 +1,9 @@
 <?php
 
 require_once __DIR__."/../model/SlotUser.php";
+require_once __DIR__."/../utils/Template.php";
+
+use slotkit\Template;
 
 /**
  * Handle slotgame related remote calls and pages.
@@ -146,17 +149,19 @@ class SlotgameController {
 		wp_enqueue_script("bundleloader",plugins_url()."/wp-slotkit/bin/bundleloader.min.js");
 		wp_enqueue_script("wpslot",plugins_url()."/wp-slotkit/bin/wpslot.js");
 
-		$content="";
-		$content.="<div id='slotgame' style='width:100%; height:1px; position:relative'></div>\n";
-		$content.="<script>\n";
-		$content.="SLOTKIT_BASEURL='".plugins_url()."/wp-slotkit/'\n";
-		$content.="SLOTKIT_INITURL='".
-			admin_url("admin-ajax.php").
-			"?action=slotkit_init&id=".
-			$params["id"]."';\n";
-		$content.="</script>\n";
+		$view=array();
+		$view["currencies"]=array();
 
-		return $content;
+		foreach (SlotkitPlugin::instance()->getAvailableCurrencies() as $currency)
+			$view["currencies"][]=$currency;
+
+		$view["initUrl"]=admin_url(
+			"admin-ajax.php?".
+			"action=slotkit_init&".
+			"id=".$slotgame->id
+		);
+
+		return Template::render(__DIR__."/../template/slotgame.php",$view);
 	}
 
 	/**
