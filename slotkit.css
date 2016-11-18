@@ -1,0 +1,9 @@
+.slotgame-holder {
+	position: relative;
+}
+
+.slotgame-currency-holder {
+	position: absolute;
+	right: 0;
+	top: -70px;
+}

@@ -148,6 +148,7 @@ class SlotgameController {
 
 		wp_enqueue_script("bundleloader",plugins_url()."/wp-slotkit/bin/bundleloader.min.js");
 		wp_enqueue_script("wpslot",plugins_url()."/wp-slotkit/bin/wpslot.js");
+		wp_enqueue_style("slotkit",plugins_url()."/wp-slotkit/slotkit.css");
 
 		$view=array();
 		$view["currencies"]=array();
