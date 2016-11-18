@@ -1,9 +1,11 @@
 <div class="slotgame-holder">
 	<div class="slotgame-currency-holder">
 		Game Currency:
-		<select>
+		<select id="slotkit-currency-select">
 			<?php foreach ($currencies as $currency) { ?>
-				<option value='<?php echo $currency; ?>'><?php echo $currency; ?></option>
+				<option value='<?php echo $currency; ?>'
+					<?php if ($currency==$userCurrency) echo "selected"; ?>
+				><?php echo $currency; ?></option>
 			<?php } ?>
 		</select>
 	</div>

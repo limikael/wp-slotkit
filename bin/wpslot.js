@@ -54,4 +54,8 @@ jQuery(function($) {
 	$(window).resize(function() {
 		updateSize();
 	});
+
+	$("#slotkit-currency-select").change(function() {
+		location.href = location.pathname + "?currency=" + $(this).val();
+	});
 });

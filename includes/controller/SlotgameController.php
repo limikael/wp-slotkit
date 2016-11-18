@@ -142,6 +142,13 @@ class SlotgameController {
 	 * Handle the slotgame shortcode.
 	 */
 	public function slotgame($params) {
+		$currentUser=wp_get_current_user();
+		if (!$currentUser->ID)
+			$currentUser=NULL;
+
+		if ($currentUser && isset($_REQUEST["currency"]))
+			update_user_meta($currentUser->ID,"slotkit_currency",$_REQUEST["currency"]);
+
 		$slotgame=Slotgame::findOne($params["id"]);
 		if (!$slotgame)
 			return "Game not found, id=".$params["id"];
@@ -153,13 +160,21 @@ class SlotgameController {
 		$view=array();
 		$view["currencies"]=array();
 
-		foreach (SlotkitPlugin::instance()->getAvailableCurrencies() as $currency)
+		$currencies=SlotkitPlugin::instance()->getAvailableCurrencies();
+		$userCurrency=$currencies[0];
+		if ($currentUser && get_user_meta($currentUser->ID,"slotkit_currency",TRUE))
+			$userCurrency=get_user_meta($currentUser->ID,"slotkit_currency",TRUE);
+
+		$view["userCurrency"]=$userCurrency;
+
+		foreach ($currencies as $currency)
 			$view["currencies"][]=$currency;
 
 		$view["initUrl"]=admin_url(
 			"admin-ajax.php?".
 			"action=slotkit_init&".
-			"id=".$slotgame->id
+			"id=".$slotgame->id.
+			"&currency=".$userCurrency
 		);
 
 		return Template::render(__DIR__."/../template/slotgame.php",$view);
