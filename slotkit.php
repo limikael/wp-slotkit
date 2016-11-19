@@ -10,6 +10,9 @@ Description: Create slot games for your users.
 Version: 0.0.1
 */
 
+define('SLOTKIT_PATH',plugin_dir_path(__FILE__));
+define('SLOTKIT_URL',plugins_url('',__FILE__));
+
 function slotkit_activate() {
 	SlotkitPlugin::instance()->activate();
 }

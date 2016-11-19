@@ -62,7 +62,7 @@ class SlotgameController {
 			throw new Exception("Game not found");
 
 		$response=array();
-		$response["baseUrl"]=plugins_url()."/wp-slotkit/";
+		$response["baseUrl"]=SLOTKIT_URL."/";
 
 		$slotUser=SlotUser::getCurrent();
 		if ($slotUser) {
@@ -166,9 +166,9 @@ class SlotgameController {
 		if (!$slotgame)
 			return "Game not found, id=".$params["id"];
 
-		wp_enqueue_script("bundleloader",plugins_url()."/wp-slotkit/bin/bundleloader.min.js");
-		wp_enqueue_script("wpslot",plugins_url()."/wp-slotkit/bin/wpslot.js");
-		wp_enqueue_style("slotkit",plugins_url()."/wp-slotkit/slotkit.css");
+		wp_enqueue_script("bundleloader",SLOTKIT_URL."/bin/bundleloader.min.js");
+		wp_enqueue_script("wpslot",SLOTKIT_URL."/bin/wpslot.js");
+		wp_enqueue_style("slotkit",SLOTKIT_URL."/slotkit.css");
 
 		$view=array();
 		$view["currencies"]=array();
