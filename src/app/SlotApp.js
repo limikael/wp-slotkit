@@ -17,7 +17,7 @@ function SlotApp(options) {
 
 	this.gameModel = new GameModel(options);
 	this.gameModel.on("displayBalanceChange", function() {
-		this.trigger("balance", this.gameModel.getDisplayBalance());
+		this.trigger("balance", this.gameModel.getDisplayBalance(), this.gameModel.getCurrency());
 	}.bind(this));
 
 	this.gameModel.on("error", function(e) {

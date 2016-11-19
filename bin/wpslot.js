@@ -26,9 +26,17 @@ jQuery(function($) {
 			loader.showMessage(e);
 		});
 
-		app.on("balance", function(balance) {
-			$(".slotkit-ply-balance").text(balance);
-			console.log("balance: " + balance);
+		app.on("balance", function(balance, currency) {
+			if (currency=="ply")
+				$(".slotkit-ply-balance").text(balance);
+
+			else {
+				$(document).trigger({
+					type: "bcaBalance",
+					balance: balance,
+					currency: currency
+				});
+			}
 		});
 	}
 

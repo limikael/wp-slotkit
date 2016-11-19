@@ -22,7 +22,7 @@ class SlotUser {
 	/**
 	 * Change balance.
 	 */
-	public function changeBalance($currency, $amount) {
+	public function changeBalance($currency, $amount, $label) {
 		$balance=$this->getBalance($currency);
 
 		if ($balance+$amount<0)
@@ -34,9 +34,37 @@ class SlotUser {
 				update_user_meta($this->getId(),"slotkit_playmoney_balance",$balance);
 				break;
 
+			case "bits":
+			case "btc":
+			case "mbtc":
+				$houseAccount=SlotkitPlugin::instance()->getHouseAccount($currency);
+				$userAccount=bca_user_account($this->user);
+
+				// playing with the house user.
+				if ($houseAccount->equals($userAccount))
+					return;
+
+				if ($amount>0)
+					bca_make_transaction($currency,$houseAccount,$userAccount,$amount,$label);
+
+				else
+					bca_make_transaction($currency,$userAccount,$houseAccount,-$amount,$label);
+
+				break;
+
 			default:
 				throw new Exception("Currency not supported");
 		}
+	}
+
+	/**
+	 * Is house user?
+	 */
+	public function isHouseUser() {
+		$houseAccount=SlotkitPlugin::instance()->getHouseAccount($currency);
+		$userAccount=bca_user_account($this->user);
+
+		return ($houseAccount->equals($userAccount));
 	}
 
 	/**
@@ -50,6 +78,16 @@ class SlotUser {
 					$meta=1000;
 
 				return floatval($meta);
+				break;
+
+			case "btc":
+			case "bits":
+			case "mbtc":
+ 		    	if (!is_plugin_active("wp-crypto-accounts/wp-crypto-accounts.php"))
+ 		    		throw new Exception("blockchain accounts not available");
+
+				$account=bca_user_account($this->user);
+				return $account->getBalance($currency);
 				break;
 
 			default:

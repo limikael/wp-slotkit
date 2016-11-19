@@ -52,6 +52,11 @@ class SlotgameController {
 	public function init() {
 		set_exception_handler(array($this,"handleException"));
 
+		if (!$_REQUEST["currency"])
+			throw new Exception("Currency not specified");
+
+		$currency=$_REQUEST["currency"];
+
 		$slotgame=Slotgame::findOne($_REQUEST["id"]);
 		if (!$slotgame)
 			throw new Exception("Game not found");
@@ -61,14 +66,19 @@ class SlotgameController {
 
 		$slotUser=SlotUser::getCurrent();
 		if ($slotUser) {
-			$response["balance"]=$slotUser->getBalance("ply");
-			$currency="ply";
+			$response["balance"]=$slotUser->getBalance($currency);
 
-			if ($currency="ply")
+			if ($currency=="ply")
 				$response["flashMessage"]="PLAYING FOR FUN";
+
+			else if ($slotUser->isHouseUser())
+				$response["flashMessage"]="PLAYING WITH HOUSE USER";
 		}
 
 		else {
+			if ($currency!="none")
+				throw new Exception("Not logged in, can't play with currency");
+
 			$response["flashMessage"]="NOT LOGGED IN";
 			$response["balanceText"]="DEMO";
 			$currency="none";
@@ -94,6 +104,7 @@ class SlotgameController {
 
 		$response["betLines"]=$slotgame->getBetLines();
 		$response["paytable"]=$slotgame->getPaytable();
+		$response["currency"]=$currency;
 
 		echo json_encode($response);
 		exit;
@@ -121,7 +132,7 @@ class SlotgameController {
 		$response=array();
 
 		if ($slotUser) {
-			$slotUser->changeBalance($currency,-$totalBet);
+			$slotUser->changeBalance($currency,-$totalBet,"Spin");
 			$response["spinBalance"]=$slotUser->getBalance($currency);
 		}
 
@@ -130,7 +141,9 @@ class SlotgameController {
 		$response["betLineWins"]=$outcome->getBetLineWins();
 
 		if ($slotUser) {
-			$slotUser->changeBalance($currency,$outcome->getTotalWin());
+			if ($outcome->getTotalWin())
+				$slotUser->changeBalance($currency,$outcome->getTotalWin(),"Win");
+
 			$response["balance"]=$slotUser->getBalance($currency);
 		}
 

@@ -45,6 +45,13 @@ GameModel.prototype.init = function() {
 }
 
 /**
+ * Get currency.
+ */
+GameModel.prototype.getCurrency = function() {
+	return this.options.currency;
+}
+
+/**
  * Init call complete.
  */
 GameModel.prototype.onInitCallComplete = function(initResponse) {
@@ -220,7 +227,7 @@ GameModel.prototype.onSpinRequestError = function(error) {
 	this.trigger("stateChange");
 	this.trigger("displayBalanceChange");
 	this.trigger("betChange");
-	this.trigger("error",error);
+	this.trigger("error", error);
 }
 
 /**

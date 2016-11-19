@@ -78,5 +78,6 @@ module.exports = {
 	],
 	balance: 123,
 	balanceText: null,
-	flashMessage: null
+	flashMessage: null,
+	currency: "none"
 };

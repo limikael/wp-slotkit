@@ -2436,7 +2436,7 @@ function SlotApp(options) {
 
 	this.gameModel = new GameModel(options);
 	this.gameModel.on("displayBalanceChange", function() {
-		this.trigger("balance", this.gameModel.getDisplayBalance());
+		this.trigger("balance", this.gameModel.getDisplayBalance(), this.gameModel.getCurrency());
 	}.bind(this));
 
 	this.gameModel.on("error", function(e) {
@@ -2829,7 +2829,8 @@ module.exports = {
 	],
 	balance: 123,
 	balanceText: null,
-	flashMessage: null
+	flashMessage: null,
+	currency: "none"
 };
 
 },{}],12:[function(require,module,exports){
@@ -2877,6 +2878,13 @@ GameModel.prototype.init = function() {
 	}
 
 	return this.initThenable;
+}
+
+/**
+ * Get currency.
+ */
+GameModel.prototype.getCurrency = function() {
+	return this.options.currency;
 }
 
 /**
@@ -3055,7 +3063,7 @@ GameModel.prototype.onSpinRequestError = function(error) {
 	this.trigger("stateChange");
 	this.trigger("displayBalanceChange");
 	this.trigger("betChange");
-	this.trigger("error",error);
+	this.trigger("error", error);
 }
 
 /**
