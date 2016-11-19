@@ -17,7 +17,6 @@ class SlotkitPlugin extends Singleton {
      * Constructor.
      */
     protected function __construct() {
-        SlotgameAdminController::setup();
         SlotgameController::getInstance();
 
         if (is_admin()) {

@@ -13,6 +13,9 @@ Version: 0.0.1
 define('SLOTKIT_PATH',plugin_dir_path(__FILE__));
 define('SLOTKIT_URL',plugins_url('',__FILE__));
 
+define("RWMB_URL",SLOTKIT_URL."/ext/meta-box/");
+require_once __DIR__."/ext/meta-box/meta-box.php";
+
 function slotkit_activate() {
 	SlotkitPlugin::instance()->activate();
 }

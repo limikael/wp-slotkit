@@ -16,12 +16,33 @@ class SlotgameController {
 	 * Constructor.
 	 */
 	private function __construct() {
-		add_shortcode("slotgame", array($this, "slotgame"));
 		add_shortcode("slotkit-ply-balance", array($this, "slotgamePlyBalance"));
-		add_action("wp_ajax_slotkit_spin", array($this, "spin"));
-		add_action("wp_ajax_nopriv_slotkit_spin", array($this, "spin"));
-		add_action("wp_ajax_slotkit_init", array($this, "init"));
-		add_action("wp_ajax_nopriv_slotkit_init", array($this, "init"));
+		add_action("wp_ajax_slotkit_spin", array($this, "spinRequest"));
+		add_action("wp_ajax_nopriv_slotkit_spin", array($this, "spinRequest"));
+		add_action("wp_ajax_slotkit_init", array($this, "initRequest"));
+		add_action("wp_ajax_nopriv_slotkit_init", array($this, "initRequest"));
+
+		add_action('get_template_part_template-parts/content',array($this,"templatePartContent"));
+		add_action('init',array($this,'init'));
+	}
+
+	/**
+	 * Init.
+	 */
+	public function init() {
+		register_post_type("slotgame",array(
+			"labels"=>array(
+				"name"=>"Slotgames",
+				"singular_name"=>"Slotgame",
+				"not_found"=>"No slotgames found.",
+				"add_new_item"=>"Add new Slotgame",
+				"edit_item"=>"Edit Slotgame",
+			),
+			"public"=>true,
+			"has_archive"=>true,
+			"supports"=>array("title","excerpt"),
+			"show_in_nav_menus"=>false
+		));
 	}
 
 	/**
@@ -49,7 +70,7 @@ class SlotgameController {
 	/**
 	 * The init call.
 	 */
-	public function init() {
+	public function initRequest() {
 		set_exception_handler(array($this,"handleException"));
 
 		if (!$_REQUEST["currency"])
@@ -57,7 +78,7 @@ class SlotgameController {
 
 		$currency=$_REQUEST["currency"];
 
-		$slotgame=Slotgame::findOne($_REQUEST["id"]);
+		$slotgame=Slotgame::findOneById($_REQUEST["id"]);
 		if (!$slotgame)
 			throw new Exception("Game not found");
 
@@ -90,17 +111,21 @@ class SlotgameController {
 			"&id=".$_REQUEST["id"].
 			"&currency=".$currency;
 
-		if ($slotgame->backgroundUrl)
-			$response["background"]=$slotgame->backgroundUrl;
+		if ($slotgame->getMeta("backgroundImage"))
+			$response["background"]=
+				wp_get_attachment_image_url($slotgame->getMeta("backgroundImage"),"full");
 
-		if ($slotgame->foregroundUrl)
-			$response["foreground"]=$slotgame->foregroundUrl;
+		if ($slotgame->getMeta("foregroundImage"))
+			$response["foreground"]=
+				wp_get_attachment_image_url($slotgame->getMeta("foregroundImage"),"full");
 
-		if ($slotgame->paytableBackgroundUrl)
-			$response["paytableBackground"]=$slotgame->paytableBackgroundUrl;
+		if ($slotgame->getMeta("paytableBackgroundImage"))
+			$response["paytableBackground"]=
+				wp_get_attachment_image_url($slotgame->getMeta("paytableBackgroundImage"),"full");
 
-		if ($slotgame->symbolsUrl)
-			$response["symbols"]=$slotgame->symbolsUrl;
+		if ($slotgame->getMeta("symbolsImage"))
+			$response["symbols"]=
+				wp_get_attachment_image_url($slotgame->getMeta("symbolsImage"),"full");
 
 		$response["betLines"]=$slotgame->getBetLines();
 		$response["paytable"]=$slotgame->getPaytable();
@@ -113,14 +138,14 @@ class SlotgameController {
 	/**
 	 * The spin call.
 	 */
-	public function spin() {
+	public function spinRequest() {
 		set_exception_handler(array($this,"handleException"));
 
 		$currency=$_REQUEST["currency"];
 		if (!$currency)
 			throw new Exception("No currency");
 
-		$slotgame=Slotgame::findOne($_REQUEST["id"]);
+		$slotgame=Slotgame::findOneById($_REQUEST["id"]);
 		if (!$slotgame)
 			throw new Exception("Game not found.");
 
@@ -152,9 +177,16 @@ class SlotgameController {
 	}
 
 	/**
-	 * Handle the slotgame shortcode.
+	 * Template part content.
 	 */
-	public function slotgame($params) {
+	public function templatePartContent($slug) {
+		$post=get_post();
+		if ($post->post_type!="slotgame")
+			return;
+
+		if (!is_single())
+			return;
+
 		$currentUser=wp_get_current_user();
 		if (!$currentUser->ID)
 			$currentUser=NULL;
@@ -162,9 +194,11 @@ class SlotgameController {
 		if ($currentUser && isset($_REQUEST["currency"]))
 			update_user_meta($currentUser->ID,"slotkit_currency",$_REQUEST["currency"]);
 
-		$slotgame=Slotgame::findOne($params["id"]);
-		if (!$slotgame)
-			return "Game not found, id=".$params["id"];
+		$slotgame=Slotgame::findOneById($post->ID);
+		if (!$slotgame) {
+			echo "Game not found, id=".$post->ID;
+			return;
+		}
 
 		wp_enqueue_script("bundleloader",SLOTKIT_URL."/bin/bundleloader.min.js");
 		wp_enqueue_script("wpslot",SLOTKIT_URL."/bin/wpslot.js");
@@ -186,11 +220,11 @@ class SlotgameController {
 		$view["initUrl"]=admin_url(
 			"admin-ajax.php?".
 			"action=slotkit_init&".
-			"id=".$slotgame->id.
+			"id=".$slotgame->getId().
 			"&currency=".$userCurrency
 		);
 
-		return Template::render(__DIR__."/../template/slotgame.php",$view);
+		Template::display(__DIR__."/../template/slotgame.php",$view);
 	}
 
 	/**

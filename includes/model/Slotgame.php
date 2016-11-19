@@ -6,26 +6,61 @@ require_once __DIR__."/SlotgameOutcome.php";
 /**
  * Represents a database record for each slotgame.
  */
-class Slotgame extends WpRecord {
+class Slotgame {
+
+	private $post;
 
 	/**
-	 * Initialize fields.
+	 * Constructor.
 	 */
-	public static function initialize() {
-		self::field("id","integer not null auto_increment");
-		self::field("name","varchar(255) not null");
-		self::field("backgroundUrl","varchar(255) not null");
-		self::field("foregroundUrl","varchar(255) not null");
-		self::field("paytableBackgroundUrl","varchar(255) not null");
-		self::field("symbolsUrl","varchar(255) not null");
-		self::field("rules","varchar(255) not null");
+	private function __construct($post) {
+		$this->post=$post;
+	}
+
+	/**
+	 * Get id.
+	 */
+	public function getId() {
+		return $this->post->ID;
+	}
+
+	/**
+	 * Get slotgame by id.
+	 */
+	public static function findOneById($postId) {
+		if (!$postId)
+			return NULL;
+
+		$post=get_post($postId);
+
+		if (!$post)
+			return NULL;
+
+		if ($post->post_type!="slotgame")
+			throw new Exception("This is not a slotgame post.");
+
+		return new Slotgame($post);
+	}
+
+	/**
+	 * Get rules.
+	 */
+	public function getRules() {
+		return get_post_meta($this->post->ID,"rules",TRUE);
+	}
+
+	/**
+	 * Get meta.
+	 */
+	public function getMeta($key) {
+		return get_post_meta($this->post->ID,"$key",TRUE);
 	}
 
 	/**
 	 * Get bet lines.
 	 */
 	public function getBetLines() {
-		switch ($this->rules) {
+		switch ($this->getRules()) {
 			case 'default':
 				return array(
 					array(1, 1, 1, 1, 1), array(0, 0, 0, 0, 0),
@@ -103,7 +138,7 @@ class Slotgame extends WpRecord {
 	 * Get paytable.
 	 */
 	public function getPaytable() {
-		switch ($this->rules) {
+		switch ($this->getRules()) {
 			case 'default':
 				return array(
 					array(0,0,30,150,1000), array(0,0,30,150,1000),

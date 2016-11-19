@@ -1,57 +1,83 @@
 <?php
 
-require_once __DIR__."/../../ext/wpcrud/WpCrud.php";
-require_once __DIR__."/../model/Slotgame.php";
+require_once __DIR__."/../utils/Singleton.php";
 
-class SlotgameAdminController extends WpCrud {
+use slotkit\Singleton;
 
-    function init() {
-        $this->addField("name");
+/**
+ * Admin controller for custom posttype.
+ */
+class SlotgameAdminController extends Singleton {
 
-        $this->addField("rules")
-            ->type("select")
-            ->options(Slotgame::getAvailableRules());
+	/**
+	 * Constructor.
+	 */
+	protected function __construct() {
+	}
 
-        $f=$this->addBox("Graphics");
+	/**
+	 * Set up meta boxes.
+	 */
+	public function rwmbMetaBoxes($metaBoxes) {
+		$metaBoxes[]=array(
+			"title"=>"Rules",
+			"post_types"=>"slotgame",
+			"priority"=>"low",
+			"fields"=>array(
+				array(
+	                'id'   => 'rules',
+	                'type' => 'select',
+	                'name' => "Rules",
+	                "options"=>Slotgame::getAvailableRules()
+				)
+			)
+		);
 
-        $f->addField("foregroundUrl")
-            ->type("media-image");
+		$metaBoxes[]=array(
+			"title"=>"Graphics",
+			"post_types"=>"slotgame",
+			"priority"=>"low",
+			"fields"=>array(
+				array(
+					"id"=>"backgroundImage",
+					"name"=>"Background Image",
+					"type"=>"image_advanced",
+					"max_file_uploads"=>1,
+					"max_status"=>false,
+					"desc"=>"This image will appear behind the reels."
+				),
+				array(
+					"id"=>"foregroundImage",
+					"name"=>"Foreground Image",
+					"type"=>"image_advanced",
+					"max_file_uploads"=>1,
+					"max_status"=>false,
+					"desc"=>"This image will appear in front of the reels. ".
+						"It needs to have transparency so the reels are visible."
+				),
+				array(
+					"id"=>"paytableBackgroundImage",
+					"name"=>"Paytable Background Image",
+					"type"=>"image_advanced",
+					"max_file_uploads"=>1,
+					"max_status"=>false,
+					"desc"=>"This is the image for the paytable dialog."
+				),
+				array(
+					"id"=>"symbolsImage",
+					"name"=>"Symbol Sheet Image",
+					"type"=>"image_advanced",
+					"max_file_uploads"=>1,
+					"max_status"=>false,
+					"desc"=>"The symbols, in a grid as specified by the rules."
+				)
+			)
+		);
 
-        $f->addField("backgroundUrl")
-            ->type("media-image");
 
-        $f->addField("paytableBackgroundUrl")
-            ->type("media-image");
-
-        $f->addField("symbolsUrl")
-            ->type("media-image");
-    }
-
-    function getLiteral($literalId) {
-        switch ($literalId) {
-            case "typeName":
-                return "Slotgame";
-                break;
-        }
-    }
-
-    function createItem() {
-        return new Slotgame();
-    }
-
-    function saveItem($slotgame) {
-        $slotgame->save();
-    }
-
-    function deleteItem($slotgame) {
-        $slotgame->delete();
-    }
-
-    function getItem($id) {
-        return Slotgame::findOne($id);
-    }
-
-    function getAllItems() {
-        return Slotgame::findAll();
-    }
+		return $metaBoxes;
+	}
 }
+
+if (is_admin())
+	add_filter("rwmb_meta_boxes",array(SlotgameAdminController::instance(),'rwmbMetaBoxes'));
