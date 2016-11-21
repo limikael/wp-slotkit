@@ -39,14 +39,12 @@ class SlotkitPlugin extends Singleton {
      * Activate the plugin.
      */
     public function activate() {
-        Slotgame::install();
     }
 
     /**
      * Uninstall the plugin.
      */
     public function uninstall() {
-        Slotgame::uninstall();
     }
 
     /**
