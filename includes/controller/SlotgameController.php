@@ -17,6 +17,7 @@ class SlotgameController {
 	 */
 	private function __construct() {
 		add_shortcode("slotkit-ply-balance", array($this, "slotgamePlyBalance"));
+		add_shortcode("slotkit-list-games", array($this, "listGames"));
 		add_action("wp_ajax_slotkit_spin", array($this, "spinRequest"));
 		add_action("wp_ajax_nopriv_slotkit_spin", array($this, "spinRequest"));
 		add_action("wp_ajax_slotkit_init", array($this, "initRequest"));
@@ -43,6 +44,36 @@ class SlotgameController {
 			"supports"=>array("title","excerpt"),
 			"show_in_nav_menus"=>false
 		));
+	}
+
+	/**
+	 * List available games.
+	 */
+	public function listGames() {
+		wp_enqueue_style("slotkit",SLOTKIT_URL."/slotkit.css");
+
+		$template=new Template(__DIR__."/../template/slotgame-listing.php");
+		$output="";
+
+		foreach (Slotgame::findAllPublished() as $slotgame) {
+			$slotgameView=array(
+				"title"=>$slotgame->getPost()->post_title,
+				"description"=>$slotgame->getPost()->post_excerpt,
+				"image"=>SLOTKIT_URL."/res/slot.jpg",
+				"url"=>get_permalink($slotgame->getId())
+			);
+
+			if ($slotgame->getMetaImage("logoImage"))
+				$slotgameView["image"]=$slotgame->getMetaImage("logoImage","40x40");
+
+			$view=array(
+				"slotgame"=>$slotgameView
+			);
+
+			$output.=$template->render($view);
+		}
+
+		return $output;
 	}
 
 	/**
@@ -224,7 +255,8 @@ class SlotgameController {
 			"&currency=".$userCurrency
 		);
 
-		Template::display(__DIR__."/../template/slotgame.php",$view);
+		$t=new Template(__DIR__."/../template/slotgame.php");
+		$t->display($view);
 	}
 
 	/**

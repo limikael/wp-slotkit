@@ -25,24 +25,6 @@ class Slotgame {
 	}
 
 	/**
-	 * Get slotgame by id.
-	 */
-	public static function findOneById($postId) {
-		if (!$postId)
-			return NULL;
-
-		$post=get_post($postId);
-
-		if (!$post)
-			return NULL;
-
-		if ($post->post_type!="slotgame")
-			throw new Exception("This is not a slotgame post.");
-
-		return new Slotgame($post);
-	}
-
-	/**
 	 * Get rules.
 	 */
 	public function getRules() {
@@ -54,6 +36,17 @@ class Slotgame {
 	 */
 	public function getMeta($key) {
 		return get_post_meta($this->post->ID,"$key",TRUE);
+	}
+
+	/**
+	 * Get meta image.
+	 */
+	public function getMetaImage($key, $size="full") {
+		$v=$this->getMeta($key);
+		if (!$v)
+			return NULL;
+
+		return wp_get_attachment_image_url($v,"full");
 	}
 
 	/**
@@ -166,4 +159,46 @@ class Slotgame {
 				throw new Exception("Unknown rules: ".$this->rules);
 		}
 	}
+
+	/**
+	 * Return underlying post.
+	 */
+	public function getPost() {
+		return $this->post;
+	}
+
+	/**
+	 * Get slotgame by id.
+	 */
+	public static function findOneById($postId) {
+		if (!$postId)
+			return NULL;
+
+		$post=get_post($postId);
+
+		if (!$post)
+			return NULL;
+
+		if ($post->post_type!="slotgame")
+			throw new Exception("This is not a slotgame post.");
+
+		return new Slotgame($post);
+	}
+
+	/**
+	 * Get slotgame by id.
+	 */
+	public static function findAllPublished() {
+		$query = new WP_Query(array(
+			'post_type'=> 'slotgame',
+		));
+
+		$posts=$query->get_posts();
+		$slotgames=array();
+		foreach ($posts as $post)
+			$slotgames[]=new Slotgame($post);
+
+		return $slotgames;
+	}
+
 }

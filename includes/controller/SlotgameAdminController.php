@@ -34,6 +34,22 @@ class SlotgameAdminController extends Singleton {
 		);
 
 		$metaBoxes[]=array(
+			"title"=>"Listing",
+			"post_types"=>"slotgame",
+			"priority"=>"low",
+			"fields"=>array(
+				array(
+					"id"=>"logoImage",
+					"name"=>"Logo Image",
+					"type"=>"image_advanced",
+					"max_file_uploads"=>1,
+					"max_status"=>false,
+					"desc"=>"This image will appear in the listing."
+				),
+			)
+		);
+
+		$metaBoxes[]=array(
 			"title"=>"Graphics",
 			"post_types"=>"slotgame",
 			"priority"=>"low",

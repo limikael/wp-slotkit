@@ -49,6 +49,7 @@ class SlotkitAdminController extends Singleton {
 
 		$vars["users"]=get_users();
 
-		Template::display(__DIR__."/../template/settings.php",$vars);
+		$t=new Template(__DIR__."/../template/settings.php");
+		$t->display($vars);
 	}
 }
