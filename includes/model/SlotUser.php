@@ -20,6 +20,13 @@ class SlotUser {
 	}
 
 	/**
+	 * Refill play money to default.
+	 */
+	public function refillPlayMoney() {
+		delete_user_meta($this->getId(),"slotkit_playmoney_balance");
+	}
+
+	/**
 	 * Change balance.
 	 */
 	public function changeBalance($currency, $amount, $label) {
@@ -75,7 +82,7 @@ class SlotUser {
 			case "ply":
 				$meta=get_user_meta($this->getId(),"slotkit_playmoney_balance",TRUE);
 				if ($meta==="")
-					$meta=1000;
+					$meta=SlotkitPlugin::instance()->getDefaultPlayMoney();
 
 				return floatval($meta);
 				break;

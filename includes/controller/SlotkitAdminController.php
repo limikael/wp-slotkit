@@ -39,6 +39,7 @@ class SlotkitAdminController extends Singleton {
 	 */
 	public function admin_init() {
 		register_setting("slotkit","slotkit_house_user_id");
+		register_setting("slotkit","slotkit_default_play_money");
 	}
 
 	/**

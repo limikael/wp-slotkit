@@ -32,6 +32,17 @@
                     </p>
                 </td>
             </tr>
+            <tr valign="top">
+                <th scope="row">Default Play Money</th>
+                <td>
+                    <input type="text" class="regular-text" 
+                        name="slotkit_default_play_money"
+                        value="<?php echo get_option("slotkit_default_play_money"); ?>"/>
+                    <p class="description">
+                        The default amount of playmoney.
+                    </p>
+                </td>
+            </tr>
         </table>
 
         <?php submit_button(); ?>

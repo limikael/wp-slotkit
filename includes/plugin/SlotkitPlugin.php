@@ -25,6 +25,17 @@ class SlotkitPlugin extends Singleton {
     }
 
     /**
+     * Get default play money.
+     */
+    public function getDefaultPlayMoney() {
+        $defaultPlayMoney=get_option("slotkit_default_play_money");
+        if (!$defaultPlayMoney)
+            $defaultPlayMoney=1000;
+
+        return $defaultPlayMoney;
+    }
+
+    /**
      * Get house blockchain account.
      */
     public function getHouseAccount($currency) {

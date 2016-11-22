@@ -16,8 +16,11 @@ class SlotgameController {
 	 * Constructor.
 	 */
 	private function __construct() {
+		add_shortcode("slotkit-refill-ply-link", array($this, "refillPlyShortcode"));
 		add_shortcode("slotkit-ply-balance", array($this, "slotgamePlyBalance"));
 		add_shortcode("slotkit-list-games", array($this, "listGames"));
+		add_action("wp_ajax_slotkit_refill_ply", array($this, "refillPly"));
+		add_action("wp_ajax_nopriv_slotkit_refill_ply", array($this, "refillPly"));
 		add_action("wp_ajax_slotkit_spin", array($this, "spinRequest"));
 		add_action("wp_ajax_nopriv_slotkit_spin", array($this, "spinRequest"));
 		add_action("wp_ajax_slotkit_init", array($this, "initRequest"));
@@ -44,6 +47,30 @@ class SlotgameController {
 			"supports"=>array("title","excerpt"),
 			"show_in_nav_menus"=>false
 		));
+	}
+
+	/**
+	 * Refill playmoney.
+	 */
+	public function refillPly() {
+		$slotUser=SlotUser::getCurrent();
+		if (!$slotUser)
+			throw new Exception("Not logged in");
+
+		$slotUser->refillPlayMoney();
+
+		header("Location: ".$_REQUEST["redirect"]);
+		exit;
+	}
+
+	/**
+	 * Refill playmoney.
+	 */
+	public function refillPlyShortcode() {
+		$back=urlencode($_SERVER["REQUEST_URI"]);
+		$link=admin_url("admin-ajax.php?action=slotkit_refill_ply&redirect=$back");
+
+		return "<a href='".$link."'>refill</a>";
 	}
 
 	/**
