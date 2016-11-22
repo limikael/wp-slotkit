@@ -51,11 +51,16 @@ class SlotUser {
 				if ($houseAccount->equals($userAccount))
 					return;
 
+				$options=array(
+					"confirming"=>TRUE,
+					"notice"=>$label
+				);
+
 				if ($amount>0)
-					bca_make_transaction($currency,$houseAccount,$userAccount,$amount,$label);
+					bca_make_transaction($currency,$houseAccount,$userAccount,$amount,$options);
 
 				else
-					bca_make_transaction($currency,$userAccount,$houseAccount,-$amount,$label);
+					bca_make_transaction($currency,$userAccount,$houseAccount,-$amount,$options);
 
 				break;
 
@@ -94,7 +99,7 @@ class SlotUser {
  		    		throw new Exception("blockchain accounts not available");
 
 				$account=bca_user_account($this->user);
-				return $account->getBalance($currency);
+				return $account->getConfirmingBalance($currency);
 				break;
 
 			default:
