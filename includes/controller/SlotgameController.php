@@ -163,6 +163,8 @@ class SlotgameController {
 			$currency="none";
 		}
 
+		$response["betLevels"]=SlotkitPlugin::instance()->getBetLevels($currency);
+
 		$response["spinUrl"]=
 			admin_url("admin-ajax.php").
 			"?action=slotkit_spin".

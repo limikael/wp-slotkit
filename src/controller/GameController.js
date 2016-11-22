@@ -38,12 +38,15 @@ function GameController(options, gameView, gameModel) {
 
 	keypadView.on("betIncButtonClick", function() {
 		if (this.gameModel.getState() == "stopped")
-			this.gameModel.setBet(this.gameModel.getBet() + this.gameModel.getBetIncrease());
+			this.gameModel.nextBet();
+
+//			this.gameModel.setBet(this.gameModel.getBet() + this.gameModel.getBetIncrease());
 	}.bind(this));
 
 	keypadView.on("betDecButtonClick", function() {
 		if (this.gameModel.getState() == "stopped")
-			this.gameModel.setBet(this.gameModel.getBet() - this.gameModel.getBetIncrease());
+			this.gameModel.prevBet();
+//			this.gameModel.setBet(this.gameModel.getBet() - this.gameModel.getBetIncrease());
 	}.bind(this));
 
 	keypadView.on("paytableButtonClick", function() {

@@ -99,7 +99,7 @@ GameModel.prototype.postInit = function() {
 	if (!this.reels || !this.reels.length)
 		this.randomizeReelSymbols();
 
-	this.bet = this.options.minBet;
+	this.betIndex = 0;
 	this.userBetLines = this.options.betLines.length;
 	this.balance = this.options.balance;
 
@@ -113,8 +113,8 @@ GameModel.prototype.ensureBetInRange = function() {
 	while (this.getTotalBet() > this.balance && this.userBetLines > 1)
 		this.userBetLines--;
 
-	while (this.getTotalBet() > this.balance && this.bet > this.options.minBet)
-		this.bet -= this.options.betIncrease;
+	while (this.getTotalBet() > this.balance && this.betIndex > 0)
+		this.betIndex--;
 }
 
 /**
@@ -373,36 +373,32 @@ GameModel.prototype.setUserBetLines = function(userBetLines) {
  * Get current bet.
  */
 GameModel.prototype.getBet = function() {
-	return this.bet;
+	return this.options.betLevels[this.betIndex];
 }
 
 /**
- * Set current bet.
+ * Prev bet.
  */
-GameModel.prototype.setBet = function(bet) {
-	if (this.state != "stopped")
-		throw new Error("state needs to be stopped to change bet");
+GameModel.prototype.nextBet = function() {
+	this.betIndex++;
 
-	var old = this.bet;
-	this.bet = bet;
+	if (this.betIndex >= this.options.betLevels.length)
+		this.betIndex = this.options.betLevels.length - 1;
 
-	if (this.bet > this.options.maxBet)
-		this.bet = this.options.maxBet;
-
-	if (this.bet < this.options.minBet)
-		this.bet = this.options.minBet;
-
-	if (this.getTotalBet() > this.balance)
-		this.bet = old;
-
+	this.ensureBetInRange();
 	this.trigger("betChange");
 }
 
 /**
- * Get bet increase step.
+ * Prev bet.
  */
-GameModel.prototype.getBetIncrease = function() {
-	return this.options.betIncrease;
+GameModel.prototype.prevBet = function() {
+	this.betIndex--;
+
+	if (this.betIndex < 0)
+		this.betIndex = 0;
+
+	this.trigger("betChange");
 }
 
 module.exports = GameModel;
