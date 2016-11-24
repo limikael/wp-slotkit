@@ -247,12 +247,10 @@ class SlotgameController {
 		if (!is_single())
 			return;
 
-		$currentUser=wp_get_current_user();
-		if (!$currentUser->ID)
-			$currentUser=NULL;
+		$slotUser=SlotUser::getCurrent();
 
-		if ($currentUser && isset($_REQUEST["currency"]))
-			update_user_meta($currentUser->ID,"slotkit_currency",$_REQUEST["currency"]);
+		if ($slotUser && isset($_REQUEST["currency"]))
+			update_user_meta($slotUser->getId(),"slotkit_currency",$_REQUEST["currency"]);
 
 		$slotgame=Slotgame::findOneById($post->ID);
 		if (!$slotgame) {
@@ -268,9 +266,19 @@ class SlotgameController {
 		$view["currencies"]=array();
 
 		$currencies=SlotkitPlugin::instance()->getAvailableCurrencies();
-		$userCurrency=$currencies[0];
-		if ($currentUser && get_user_meta($currentUser->ID,"slotkit_currency",TRUE))
-			$userCurrency=get_user_meta($currentUser->ID,"slotkit_currency",TRUE);
+
+		if ($slotUser) {
+			$userCurrency=$currencies[0];
+			if (get_user_meta($slotUser->getId(),"slotkit_currency",TRUE))
+				$userCurrency=get_user_meta($slotUser->getId(),"slotkit_currency",TRUE);
+
+			$view["showCurrencySelect"]=TRUE;
+		}
+
+		else {
+			$userCurrency="none";
+			$view["showCurrencySelect"]=FALSE;
+		}
 
 		$view["userCurrency"]=$userCurrency;
 
