@@ -6,10 +6,9 @@ class TestSlotgame extends WP_UnitTestCase {
     function setUp() {
         parent::setUp();
 
-        Slotgame::install();
     }
 
-    function testGetReel() {
+/*    function testGetReel() {
         $g=new Slotgame();
         $g->save();
         $this->assertNotNull($g->id);
@@ -20,5 +19,5 @@ class TestSlotgame extends WP_UnitTestCase {
         $g->rules="oneLine";
 
         $outcome=$g->generateOutcome();
-    }
+    }*/
 }

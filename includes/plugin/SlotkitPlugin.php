@@ -3,6 +3,7 @@
 require_once __DIR__."/../controller/SlotgameAdminController.php";
 require_once __DIR__."/../controller/SlotgameController.php";
 require_once __DIR__."/../controller/SlotkitAdminController.php";
+require_once __DIR__."/../controller/RevenueController.php";
 require_once __DIR__."/../model/Slotgame.php";
 require_once __DIR__."/../utils/Singleton.php";
 
@@ -18,9 +19,18 @@ class SlotkitPlugin extends Singleton {
      */
     protected function __construct() {
         SlotgameController::getInstance();
+        RevenueController::instance();
 
         if (is_admin()) {
             SlotkitAdminController::instance();
+        }
+
+        if (!wp_next_scheduled("slotkit_collect_revenue")) {
+            wp_schedule_event(
+                time(),
+                "daily",
+                "slotkit_collect_revenue"
+            );
         }
     }
 
@@ -39,11 +49,46 @@ class SlotkitPlugin extends Singleton {
      * Get house blockchain account.
      */
     public function getHouseAccount($currency) {
-        $account=bca_user_account(get_option("slotkit_house_user_id"));
-        if (!$account)
-            throw new Exception("No house account set up");
+        switch ($currency) {
+            case "ply":
+                throw new Exception("No house account for playmoney");
+                break;
 
-        return $account;
+            case "bits":
+            case "btc":
+            case "mbtc":
+                return bca_entity_account("slotkit-house",1);
+                break;
+        }
+    }
+
+    /**
+     * How often should funds be moved from the house account
+     * to the revenue account?
+     */
+    public function getRevenueCollectionSchedule() {
+        $v=get_option("slotkit_collect_revenue_schedule");
+        if (!$v)
+            $v="weekly";
+
+        return $v;
+    }
+
+    /**
+     * Get revenue account.
+     */
+    public function getRevenueAccount($currency) {
+        switch ($currency) {
+            case "ply":
+                throw new Exception("No house account for playmoney");
+                break;
+
+            case "bits":
+            case "btc":
+            case "mbtc":
+                return bca_entity_account("slotkit-revenue",1);
+                break;
+        }
     }
 
     /**
@@ -56,6 +101,7 @@ class SlotkitPlugin extends Singleton {
      * Uninstall the plugin.
      */
     public function uninstall() {
+        wp_clear_scheduled_hook("slotkit_collect_revenue");
     }
 
     /**

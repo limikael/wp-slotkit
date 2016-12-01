@@ -70,16 +70,6 @@ class SlotUser {
 	}
 
 	/**
-	 * Is house user?
-	 */
-	public function isHouseUser() {
-		$houseAccount=SlotkitPlugin::instance()->getHouseAccount($currency);
-		$userAccount=bca_user_account($this->user);
-
-		return ($houseAccount->equals($userAccount));
-	}
-
-	/**
 	 * Get balance.
 	 */
 	public function getBalance($currency) {

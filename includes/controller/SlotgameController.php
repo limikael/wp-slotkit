@@ -149,9 +149,6 @@ class SlotgameController {
 
 			if ($currency=="ply")
 				$response["flashMessage"]="PLAYING FOR FUN";
-
-			else if ($slotUser->isHouseUser())
-				$response["flashMessage"]="PLAYING WITH HOUSE USER";
 		}
 
 		else {

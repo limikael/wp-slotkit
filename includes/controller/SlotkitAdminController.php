@@ -40,6 +40,7 @@ class SlotkitAdminController extends Singleton {
 	public function admin_init() {
 		register_setting("slotkit","slotkit_house_user_id");
 		register_setting("slotkit","slotkit_default_play_money");
+		register_setting("slotkit","slotkit_collect_revenue_schedule");
 	}
 
 	/**
@@ -49,6 +50,21 @@ class SlotkitAdminController extends Singleton {
 		$vars=array();
 
 		$vars["users"]=get_users();
+
+		$currencies=SlotkitPlugin::instance()->getAvailableCurrencies();
+		if (in_array("btc",$currencies)) {
+			$vars["showBitcoinAccounts"]=TRUE;
+
+			$houseAccount=SlotkitPlugin::instance()->getHouseAccount("btc");
+			$vars["bitcoinHouseBalance"]=$houseAccount->getBalance("btc");
+			$vars["bitcoinHouseAddress"]=$houseAccount->getDepositAddress();
+
+			$revenueAccount=SlotkitPlugin::instance()->getRevenueAccount("btc");
+			$vars["bitcoinRevenueBalance"]=$revenueAccount->getBalance("btc");
+			$vars["bitcoinRevenueAddress"]=$revenueAccount->getDepositAddress();
+		}
+
+		$vars["collectionShedule"]=SlotkitPlugin::instance()->getRevenueCollectionSchedule();
 
 		$t=new Template(__DIR__."/../template/settings.php");
 		$t->display($vars);

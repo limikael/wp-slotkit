@@ -10,29 +10,6 @@
 
         <table class="form-table">
             <tr valign="top">
-                <th scope="row">House User</th>
-                <td>
-                    <select name="slotkit_house_user_id"
-                            id="slotkit_house_user_id">
-                        <option value="">(Please select)</option>
-                        <?php foreach ($users as $user) { ?>
-                            <option 
-                                value="<?php echo $user->ID; ?>"
-                                <?php if (get_option("slotkit_house_user_id")==$user->ID) { ?>
-                                    selected
-                                <?php } ?>
-                            >
-                                <?php echo $user->user_login; ?>
-                                (<?php echo $user->user_email; ?>)
-                            </option>
-                        <?php } ?>
-                    </select>
-                    <p class="description">
-                        Select house user.
-                    </p>
-                </td>
-            </tr>
-            <tr valign="top">
                 <th scope="row">Default Play Money</th>
                 <td>
                     <input type="text" class="regular-text" 
@@ -43,6 +20,45 @@
                     </p>
                 </td>
             </tr>
+            <tr valign="top">
+                <th scope="row">Collection Schedule</th>
+                <td>
+                    <select name="slotkit_collect_revenue_schedule">
+                        <option value="daily"
+                            <?php if ($collectionShedule=="daily") echo "selected"; ?>
+                        >Daily</option>
+                        <option value="weekly"
+                            <?php if ($collectionShedule=="weekly") echo "selected"; ?>
+                        >Weekly</option>
+                        <option value="monthly"
+                            <?php if ($collectionShedule=="monthly") echo "selected"; ?>
+                        >Monthly</option>
+                    </select>
+                    <p class="description">
+                        How often shoud funds be moved from the house account to the revenue account?
+                    </p>
+                </td>
+            </tr>
+            <?php if ($showBitcoinAccounts) { ?>
+                <tr valign="top">
+                    <th scope="row">Bitcoin House Account</th>
+                    <td>
+                        <p>Balance: <?php echo $bitcoinHouseBalance; ?> btc</p>
+                        <p class="description">
+                            Address: <?php echo $bitcoinHouseAddress; ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Bitcoin Revenue Account</th>
+                    <td>
+                        <p>Balance: <?php echo $bitcoinRevenueBalance; ?> btc</p>
+                        <p class="description">
+                            Address: <?php echo $bitcoinRevenueAddress; ?>
+                        </p>
+                    </td>
+                </tr>
+            <?php } ?>
         </table>
 
         <?php submit_button(); ?>
