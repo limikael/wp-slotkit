@@ -49,6 +49,9 @@ class SlotkitAdminController extends Singleton {
 	public function create_settings_page() {
 		$vars=array();
 
+		if (isset($_REQUEST["action"]) && $_REQUEST["action"]=="collect")
+			RevenueController::instance()->collectAll();
+
 		$vars["users"]=get_users();
 
 		$currencies=SlotkitPlugin::instance()->getAvailableCurrencies();
@@ -62,6 +65,17 @@ class SlotkitAdminController extends Singleton {
 			$revenueAccount=SlotkitPlugin::instance()->getRevenueAccount("btc");
 			$vars["bitcoinRevenueBalance"]=$revenueAccount->getBalance("btc");
 			$vars["bitcoinRevenueAddress"]=$revenueAccount->getDepositAddress();
+
+			$uncollected=RevenueController::instance()->getCurrentNgr("btc");
+			$vars["bitcoinUncollected"]=$uncollected;
+
+			$nextTime=RevenueController::instance()->getNextCollectionTime("btc");
+			$t=time();
+			if ($t>$nextTime)
+				$t=$nextTime;
+
+			$vars["bitcoinCollectIn"]=human_time_diff($t,$nextTime);
+			$vars["collectUrl"]=admin_url("options-general.php?page=slotkit_settings&action=collect");
 		}
 
 		$vars["collectionShedule"]=SlotkitPlugin::instance()->getRevenueCollectionSchedule();

@@ -58,6 +58,17 @@
                         </p>
                     </td>
                 </tr>
+                <tr valign="top">
+                    <th scope="row">Bitcoin Accumulated NGR</th>
+                    <td>
+                        <?php echo $bitcoinUncollected; ?> btc</p>
+                        <p class="description">
+                            Will be moved from the house account to the revenue account in 
+                            <?php echo $bitcoinCollectIn; ?>.<br/>
+                            <a href="<?php echo $collectUrl; ?>">Collect now</a>
+                        </p>
+                    </td>
+                </tr>
             <?php } ?>
         </table>
 

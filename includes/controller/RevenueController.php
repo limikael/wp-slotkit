@@ -35,7 +35,7 @@ class RevenueController extends Singleton {
 			"notice"=>"Collect revenue"
 		));
 
-		set_option("slotkit_revenue_collected_".$currency,$time);
+		update_option("slotkit_revenue_collected_".$currency,$time);
 	}
 
 	/**
@@ -86,9 +86,9 @@ class RevenueController extends Singleton {
 	}
 
 	/**
-	 * Is it time to collect this currency?
+	 * When is the next time to collect revenue?
 	 */
-	public function isTimeToCollect($currency) {
+	public function getNextCollectionTime($currency) {
 		$delta=0;
 		switch (SlotkitPlugin::instance()->getRevenueCollectionSchedule()) {
 			case "daily":
@@ -108,7 +108,16 @@ class RevenueController extends Singleton {
 		}
 
 		$last=get_option("slotkit_revenue_collected_".$currency);
-		if (time()>=$last+$delta)
+		$next=$last+$delta;
+
+		return $next;
+	}
+
+	/**
+	 * Is it time to collect this currency?
+	 */
+	public function isTimeToCollect($currency) {
+		if (time()>=$this->getNextCollectionTime())
 			return TRUE;
 
 		return FALSE;
@@ -116,7 +125,7 @@ class RevenueController extends Singleton {
 
 	/**
 	 * Collect revenue for applicable currencies.
-	 * This should be run opn a cron.
+	 * This should be run on a cron.
 	 */
 	public function collectApplicable() {
 		$currencies=$this->getCollectibleCurrencies();
@@ -124,5 +133,15 @@ class RevenueController extends Singleton {
 		foreach ($currencies as $currency)
 			if ($this->isTimeToCollect($currency))
 				$this->collectNgr($currency);
+	}
+
+	/**
+	 * Collect revenue for all currencies.
+	 */
+	public function collectAll() {
+		$currencies=$this->getCollectibleCurrencies();
+
+		foreach ($currencies as $currency)
+			$this->collectNgr($currency);
 	}
 }

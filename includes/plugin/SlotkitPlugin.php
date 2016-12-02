@@ -25,6 +25,9 @@ class SlotkitPlugin extends Singleton {
             SlotkitAdminController::instance();
         }
 
+        /*$next=wp_next_scheduled("slotkit_collect_revenue");
+        error_log(print_r($next,TRUE));*/
+
         if (!wp_next_scheduled("slotkit_collect_revenue")) {
             wp_schedule_event(
                 time(),
