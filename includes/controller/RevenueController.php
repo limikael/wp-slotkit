@@ -13,7 +13,15 @@ class RevenueController extends Singleton {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action('slotkit_collect_revenue',array($this,'collectApplicable'));			
+		add_action('slotkit_collect_revenue',array($this,'collectAll'));
+
+        if (!wp_next_scheduled("slotkit_collect_revenue")) {
+            wp_schedule_event(
+                time(),
+                "weekly",
+                "slotkit_collect_revenue"
+            );
+        }
 	}
 
 	/**
@@ -61,17 +69,6 @@ class RevenueController extends Singleton {
 	}
 
 	/**
-	 * Get last time funds were moved to the revenue account.
-	 */
-	public function getLastCollectionTime($currency) {
-		$t=get_option("slotkit_revenue_collected_".$currency);
-		if (!$t)
-			$t=0;
-
-		return $t;
-	}
-
-	/**
 	 * Get currencies that should be set aside for moving to
 	 * the revenue account.
 	 */
@@ -83,56 +80,6 @@ class RevenueController extends Singleton {
 			$currencies[]="btc";
 
 		return $currencies;
-	}
-
-	/**
-	 * When is the next time to collect revenue?
-	 */
-	public function getNextCollectionTime($currency) {
-		$delta=0;
-		switch (SlotkitPlugin::instance()->getRevenueCollectionSchedule()) {
-			case "daily":
-				$delta=24*60*60;
-				break;
-
-			case "weekly":
-				$delta=7*24*60*60;
-				break;
-
-			case "monthly":
-				$delta=30*7*24*60*60;
-				break;
-
-			default:
-				throw new Exception("Unknown collection schedule");
-		}
-
-		$last=get_option("slotkit_revenue_collected_".$currency);
-		$next=$last+$delta;
-
-		return $next;
-	}
-
-	/**
-	 * Is it time to collect this currency?
-	 */
-	public function isTimeToCollect($currency) {
-		if (time()>=$this->getNextCollectionTime())
-			return TRUE;
-
-		return FALSE;
-	}
-
-	/**
-	 * Collect revenue for applicable currencies.
-	 * This should be run on a cron.
-	 */
-	public function collectApplicable() {
-		$currencies=$this->getCollectibleCurrencies();
-
-		foreach ($currencies as $currency)
-			if ($this->isTimeToCollect($currency))
-				$this->collectNgr($currency);
 	}
 
 	/**

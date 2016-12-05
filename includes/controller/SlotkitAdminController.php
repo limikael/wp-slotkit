@@ -32,6 +32,7 @@ class SlotkitAdminController extends Singleton {
 		);
 
 		add_action('admin_init',array($this,'admin_init'));			
+		add_action("update_option",array($this,"update_option"));
 	}		
 
 	/**
@@ -40,7 +41,33 @@ class SlotkitAdminController extends Singleton {
 	public function admin_init() {
 		register_setting("slotkit","slotkit_house_user_id");
 		register_setting("slotkit","slotkit_default_play_money");
-		register_setting("slotkit","slotkit_collect_revenue_schedule");
+	}
+
+	/**
+	 * Updated option...
+	 */
+	public function update_option() {
+		static $done=FALSE;
+
+		if ($done)
+			return;
+
+		$done=TRUE;
+
+		if (isset($_REQUEST["slotkit_collect_revenue"]) && $_REQUEST["slotkit_collect_revenue"]) {
+			wp_clear_scheduled_hook("slotkit_collect_revenue");
+
+			$schedule=$_REQUEST["slotkit_collect_revenue"];
+			$schedules=wp_get_schedules();
+			if (!$schedules[$schedule])
+				throw new Exception("Unknown schedule");
+
+            wp_schedule_event(
+                time()+$schedules[$schedule]["interval"],
+                $_REQUEST["slotkit_collect_revenue"],
+                "slotkit_collect_revenue"
+            );
+		}
 	}
 
 	/**
@@ -51,8 +78,6 @@ class SlotkitAdminController extends Singleton {
 
 		if (isset($_REQUEST["action"]) && $_REQUEST["action"]=="collect")
 			RevenueController::instance()->collectAll();
-
-		$vars["users"]=get_users();
 
 		$currencies=SlotkitPlugin::instance()->getAvailableCurrencies();
 		if (in_array("btc",$currencies)) {
@@ -69,16 +94,13 @@ class SlotkitAdminController extends Singleton {
 			$uncollected=RevenueController::instance()->getCurrentNgr("btc");
 			$vars["bitcoinUncollected"]=$uncollected;
 
-			$nextTime=RevenueController::instance()->getNextCollectionTime("btc");
-			$t=time();
-			if ($t>$nextTime)
-				$t=$nextTime;
+			$nextTime=wp_next_scheduled("slotkit_collect_revenue");
+			$vars["bitcoinCollectIn"]=human_time_diff(time(),$nextTime);
 
-			$vars["bitcoinCollectIn"]=human_time_diff($t,$nextTime);
 			$vars["collectUrl"]=admin_url("options-general.php?page=slotkit_settings&action=collect");
 		}
 
-		$vars["collectionShedule"]=SlotkitPlugin::instance()->getRevenueCollectionSchedule();
+		$vars["collectionShedule"]=wp_get_schedule("slotkit_collect_revenue");
 
 		$t=new Template(__DIR__."/../template/settings.php");
 		$t->display($vars);

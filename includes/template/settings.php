@@ -2,7 +2,7 @@
     <h2>Slotkit</h2>
 
     <p>
-        Select which user account that will serve as the house account.
+        Settings.
     </p>
     <form method="post" action="options.php">
         <?php settings_fields( 'slotkit' ); ?>
@@ -23,7 +23,7 @@
             <tr valign="top">
                 <th scope="row">Collection Schedule</th>
                 <td>
-                    <select name="slotkit_collect_revenue_schedule">
+                    <select name="slotkit_collect_revenue">
                         <option value="daily"
                             <?php if ($collectionShedule=="daily") echo "selected"; ?>
                         >Daily</option>

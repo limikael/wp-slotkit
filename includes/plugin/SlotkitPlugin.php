@@ -25,16 +25,22 @@ class SlotkitPlugin extends Singleton {
             SlotkitAdminController::instance();
         }
 
-        /*$next=wp_next_scheduled("slotkit_collect_revenue");
-        error_log(print_r($next,TRUE));*/
+        add_filter("cron_schedules",array($this,"addSchedules"));
+    }
 
-        if (!wp_next_scheduled("slotkit_collect_revenue")) {
-            wp_schedule_event(
-                time(),
-                "daily",
-                "slotkit_collect_revenue"
-            );
-        }
+    /**
+     * Add weekly and monthly schedules.
+     */
+    public function addSchedules($schedules) {
+        $schedules['weekly'] = array(
+            'interval' => 604800,
+            'display' => __('Once Weekly')
+        );
+        $schedules['monthly'] = array(
+            'interval' => 2635200,
+            'display' => __('Once a month')
+        );
+        return $schedules;        
     }
 
     /**
