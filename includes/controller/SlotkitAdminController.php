@@ -86,10 +86,12 @@ class SlotkitAdminController extends Singleton {
 			$houseAccount=SlotkitPlugin::instance()->getHouseAccount("btc");
 			$vars["bitcoinHouseBalance"]=$houseAccount->getBalance("btc");
 			$vars["bitcoinHouseAddress"]=$houseAccount->getDepositAddress();
+			$vars["bitcoinHouseUrl"]=$houseAccount->getAdminUrl();
 
 			$revenueAccount=SlotkitPlugin::instance()->getRevenueAccount("btc");
 			$vars["bitcoinRevenueBalance"]=$revenueAccount->getBalance("btc");
 			$vars["bitcoinRevenueAddress"]=$revenueAccount->getDepositAddress();
+			$vars["bitcoinRevenueUrl"]=$revenueAccount->getAdminUrl();
 
 			$uncollected=RevenueController::instance()->getCurrentNgr("btc");
 			$vars["bitcoinUncollected"]=$uncollected;

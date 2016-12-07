@@ -43,7 +43,10 @@
                 <tr valign="top">
                     <th scope="row">Bitcoin House Account</th>
                     <td>
-                        <p>Balance: <?php echo $bitcoinHouseBalance; ?> btc</p>
+                        <p>
+                            Balance: <?php echo $bitcoinHouseBalance; ?> btc
+                            <a href="<?php echo $bitcoinHouseUrl; ?>">history</a>
+                        </p>
                         <p class="description">
                             Address: <?php echo $bitcoinHouseAddress; ?>
                         </p>
@@ -52,7 +55,10 @@
                 <tr valign="top">
                     <th scope="row">Bitcoin Revenue Account</th>
                     <td>
-                        <p>Balance: <?php echo $bitcoinRevenueBalance; ?> btc</p>
+                        <p>
+                            Balance: <?php echo $bitcoinRevenueBalance; ?> btc
+                            <a href="<?php echo $bitcoinRevenueUrl; ?>">history</a>
+                        </p>
                         <p class="description">
                             Address: <?php echo $bitcoinRevenueAddress; ?>
                         </p>
