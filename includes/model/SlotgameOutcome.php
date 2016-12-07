@@ -69,7 +69,7 @@ class SlotgameOutcome {
 			$this->betLineWins[]=array(
 				"betLine"=>$betLineIndex,
 				"numSymbols"=>$numSymbols,
-				"multiplier"=>$paytable[$sym][$numSymbols-1],
+				/*"multiplier"=>$paytable[$sym][$numSymbols-1],*/
 				"amount"=>$this->bet*$paytable[$sym][$numSymbols-1]
 			);
 		}

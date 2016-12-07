@@ -1,0 +1,20 @@
+{
+	"spinBalance":0.0472,
+	"reels":[
+		[4,5,0],
+		[4,5,3],
+		[0,4,2],
+		[3,2,1],
+		[0,4,6]
+	],
+	"betLineWins":[{
+		"betLine":5,
+		"numSymbols":3,
+		"amount":0.0004
+	},{
+		"betLine":6,
+		"numSymbols":3,
+		"amount":0.0002
+	}],
+	"balance":0.0478
+}

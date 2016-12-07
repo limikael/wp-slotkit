@@ -803,7 +803,6 @@ Object.defineProperty(PixiApp.prototype, "superSampling", {
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./ContentScaler":2,"pixi.js":"pixi.js","yaed":8}],4:[function(require,module,exports){
 // shim for using process in browser
-
 var process = module.exports = {};
 
 // cached from whatever global is present so that test runners that stub it
@@ -814,22 +813,84 @@ var process = module.exports = {};
 var cachedSetTimeout;
 var cachedClearTimeout;
 
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
 (function () {
-  try {
-    cachedSetTimeout = setTimeout;
-  } catch (e) {
-    cachedSetTimeout = function () {
-      throw new Error('setTimeout is not defined');
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
     }
-  }
-  try {
-    cachedClearTimeout = clearTimeout;
-  } catch (e) {
-    cachedClearTimeout = function () {
-      throw new Error('clearTimeout is not defined');
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
     }
-  }
 } ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
 var queue = [];
 var draining = false;
 var currentQueue;
@@ -854,7 +915,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = cachedSetTimeout(cleanUpNextTick);
+    var timeout = runTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -871,7 +932,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    cachedClearTimeout(timeout);
+    runClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -883,7 +944,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        cachedSetTimeout(drainQueue, 0);
+        runTimeout(drainQueue);
     }
 };
 
@@ -1370,6 +1431,7 @@ Thenable.delay = function(millis) {
 module.exports = Thenable;
 }).call(this,require('_process'))
 },{"_process":4}],7:[function(require,module,exports){
+(function (process){
 /**
  * Tween.js - Licensed under the MIT license
  * https://github.com/tweenjs/tween.js
@@ -1378,29 +1440,6 @@ module.exports = Thenable;
  * See https://github.com/tweenjs/tween.js/graphs/contributors for the full list of contributors.
  * Thank you all, you're awesome!
  */
-
-// Include a performance.now polyfill
-(function () {
-
-	if ('performance' in window === false) {
-		window.performance = {};
-	}
-
-	// IE 8
-	Date.now = (Date.now || function () {
-		return new Date().getTime();
-	});
-
-	if ('now' in window.performance === false) {
-		var offset = window.performance.timing && window.performance.timing.navigationStart ? window.performance.timing.navigationStart
-		                                                                                    : Date.now();
-
-		window.performance.now = function () {
-			return Date.now() - offset;
-		};
-	}
-
-})();
 
 var TWEEN = TWEEN || (function () {
 
@@ -1436,7 +1475,7 @@ var TWEEN = TWEEN || (function () {
 
 		},
 
-		update: function (time) {
+		update: function (time, preserve) {
 
 			if (_tweens.length === 0) {
 				return false;
@@ -1444,11 +1483,11 @@ var TWEEN = TWEEN || (function () {
 
 			var i = 0;
 
-			time = time !== undefined ? time : window.performance.now();
+			time = time !== undefined ? time : TWEEN.now();
 
 			while (i < _tweens.length) {
 
-				if (_tweens[i].update(time)) {
+				if (_tweens[i].update(time) || preserve) {
 					i++;
 				} else {
 					_tweens.splice(i, 1);
@@ -1462,6 +1501,40 @@ var TWEEN = TWEEN || (function () {
 	};
 
 })();
+
+
+// Include a performance.now polyfill
+(function () {
+	// In node.js, use process.hrtime.
+	if (this.window === undefined && this.process !== undefined) {
+		TWEEN.now = function () {
+			var time = process.hrtime();
+
+			// Convert [seconds, microseconds] to milliseconds.
+			return time[0] * 1000 + time[1] / 1000;
+		};
+	}
+	// In a browser, use window.performance.now if it is available.
+	else if (this.window !== undefined &&
+	         window.performance !== undefined &&
+		 window.performance.now !== undefined) {
+
+		// This must be bound, because directly assigning this function
+		// leads to an invocation exception in Chrome.
+		TWEEN.now = window.performance.now.bind(window.performance);
+	}
+	// Use Date.now if it is available.
+	else if (Date.now !== undefined) {
+		TWEEN.now = Date.now;
+	}
+	// Otherwise, use 'new Date().getTime()'.
+	else {
+		TWEEN.now = function () {
+			return new Date().getTime();
+		};
+	}
+})();
+
 
 TWEEN.Tween = function (object) {
 
@@ -1510,7 +1583,7 @@ TWEEN.Tween = function (object) {
 
 		_onStartCallbackFired = false;
 
-		_startTime = time !== undefined ? time : window.performance.now();
+		_startTime = time !== undefined ? time : TWEEN.now();
 		_startTime += _delayTime;
 
 		for (var property in _valuesEnd) {
@@ -1688,7 +1761,7 @@ TWEEN.Tween = function (object) {
 				// Parses relative end values with start as base (e.g.: +10, -3)
 				if (typeof (end) === 'string') {
 
-					if (end.startsWith('+') || end.startsWith('-')) {
+					if (end.charAt(0) === '+' || end.charAt(0) === '-') {
 						end = start + parseFloat(end, 10);
 					} else {
 						end = parseFloat(end, 10);
@@ -1969,10 +2042,6 @@ TWEEN.Easing = {
 
 		In: function (k) {
 
-			var s;
-			var a = 0.1;
-			var p = 0.4;
-
 			if (k === 0) {
 				return 0;
 			}
@@ -1981,23 +2050,12 @@ TWEEN.Easing = {
 				return 1;
 			}
 
-			if (!a || a < 1) {
-				a = 1;
-				s = p / 4;
-			} else {
-				s = p * Math.asin(1 / a) / (2 * Math.PI);
-			}
-
-			return - (a * Math.pow(2, 10 * (k -= 1)) * Math.sin((k - s) * (2 * Math.PI) / p));
+			return -Math.pow(2, 10 * (k - 1)) * Math.sin((k - 1.1) * 5 * Math.PI);
 
 		},
 
 		Out: function (k) {
 
-			var s;
-			var a = 0.1;
-			var p = 0.4;
-
 			if (k === 0) {
 				return 0;
 			}
@@ -2006,23 +2064,12 @@ TWEEN.Easing = {
 				return 1;
 			}
 
-			if (!a || a < 1) {
-				a = 1;
-				s = p / 4;
-			} else {
-				s = p * Math.asin(1 / a) / (2 * Math.PI);
-			}
-
-			return (a * Math.pow(2, - 10 * k) * Math.sin((k - s) * (2 * Math.PI) / p) + 1);
+			return Math.pow(2, -10 * k) * Math.sin((k - 0.1) * 5 * Math.PI) + 1;
 
 		},
 
 		InOut: function (k) {
 
-			var s;
-			var a = 0.1;
-			var p = 0.4;
-
 			if (k === 0) {
 				return 0;
 			}
@@ -2031,18 +2078,13 @@ TWEEN.Easing = {
 				return 1;
 			}
 
-			if (!a || a < 1) {
-				a = 1;
-				s = p / 4;
-			} else {
-				s = p * Math.asin(1 / a) / (2 * Math.PI);
+			k *= 2;
+
+			if (k < 1) {
+				return -0.5 * Math.pow(2, 10 * (k - 1)) * Math.sin((k - 1.1) * 5 * Math.PI);
 			}
 
-			if ((k *= 2) < 1) {
-				return - 0.5 * (a * Math.pow(2, 10 * (k -= 1)) * Math.sin((k - s) * (2 * Math.PI) / p));
-			}
-
-			return a * Math.pow(2, -10 * (k -= 1)) * Math.sin((k - s) * (2 * Math.PI) / p) * 0.5 + 1;
+			return 0.5 * Math.pow(2, -10 * (k - 1)) * Math.sin((k - 1.1) * 5 * Math.PI) + 1;
 
 		}
 
@@ -2261,7 +2303,8 @@ TWEEN.Interpolation = {
 
 })(this);
 
-},{}],8:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"_process":4}],8:[function(require,module,exports){
 /**
  * AS3/jquery style event dispatcher. Slightly modified. The
  * jquery style on/off/trigger style of adding listeners is
@@ -3139,10 +3182,12 @@ GameModel.prototype.getWinBetLineIndex = function(winIndex) {
 GameModel.prototype.getAccumulatedWinAmount = function(winIndex) {
 	var accumulated = 0;
 
-	for (var i = 0; i < winIndex + 1; i++)
-		accumulated += this.betLineWins[winIndex].amount;
+	//console.log("getting accumulated: "+winIndex);
 
-	return accumulated;
+	for (var i = 0; i < winIndex + 1; i++)
+		accumulated += this.betLineWins[i].amount;
+
+	return parseFloat(accumulated.toFixed(10));
 }
 
 /**
@@ -4862,6 +4907,18 @@ WinView.prototype.showAccumulatedWin = function(amount) {
 }
 
 /**
+ * How many decimal places are there.
+ */
+WinView.getDecimalPlaces=function(num) {
+	var s=num.toString();
+
+	if (s.indexOf(".")<0)
+		return 0;
+
+	return s.length-s.indexOf(".")-1;
+}
+
+/**
  * Update win count
  * @method updateWinCount
  * @private
@@ -4879,7 +4936,12 @@ WinView.prototype.updateWinCount = function() {
 	var v = this.countStartValue + frac * (this.countTargetValue - this.countStartValue);
 	this.countValue = v;
 
-	this.winPlateField.text = "Total win: " + Math.round(v);
+	var places=Math.max(
+		WinView.getDecimalPlaces(this.countTargetValue),
+		WinView.getDecimalPlaces(this.countStartValue)
+	);
+
+	this.winPlateField.text = "Total win: " + parseFloat(v.toFixed(places));
 	this.winPlateField.x = this.options.winPlateX - this.winPlateField.width / 2;
 }
 },{"inherits":1,"sprintf-js":5,"tinp":6,"tween.js":7}]},{},[9]);

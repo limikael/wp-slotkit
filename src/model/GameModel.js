@@ -301,10 +301,12 @@ GameModel.prototype.getWinBetLineIndex = function(winIndex) {
 GameModel.prototype.getAccumulatedWinAmount = function(winIndex) {
 	var accumulated = 0;
 
-	for (var i = 0; i < winIndex + 1; i++)
-		accumulated += this.betLineWins[winIndex].amount;
+	//console.log("getting accumulated: "+winIndex);
 
-	return accumulated;
+	for (var i = 0; i < winIndex + 1; i++)
+		accumulated += this.betLineWins[i].amount;
+
+	return parseFloat(accumulated.toFixed(10));
 }
 
 /**

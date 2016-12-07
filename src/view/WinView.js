@@ -125,6 +125,18 @@ WinView.prototype.showAccumulatedWin = function(amount) {
 }
 
 /**
+ * How many decimal places are there.
+ */
+WinView.getDecimalPlaces=function(num) {
+	var s=num.toString();
+
+	if (s.indexOf(".")<0)
+		return 0;
+
+	return s.length-s.indexOf(".")-1;
+}
+
+/**
  * Update win count
  * @method updateWinCount
  * @private
@@ -142,6 +154,11 @@ WinView.prototype.updateWinCount = function() {
 	var v = this.countStartValue + frac * (this.countTargetValue - this.countStartValue);
 	this.countValue = v;
 
-	this.winPlateField.text = "Total win: " + Math.round(v);
+	var places=Math.max(
+		WinView.getDecimalPlaces(this.countTargetValue),
+		WinView.getDecimalPlaces(this.countStartValue)
+	);
+
+	this.winPlateField.text = "Total win: " + parseFloat(v.toFixed(places));
 	this.winPlateField.x = this.options.winPlateX - this.winPlateField.width / 2;
 }
