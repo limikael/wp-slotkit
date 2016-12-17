@@ -26,6 +26,22 @@ class SlotkitPlugin extends Singleton {
         }
 
         add_filter("cron_schedules",array($this,"addSchedules"));
+        add_filter("slotkit_available_tweaks",array($this,"availableTweaks"));
+    }
+
+    /**
+     * Get available tweak file names.
+     */
+    public function availableTweaks($tweaks) {
+        $dir=basename(SLOTKIT_PATH)."/tweaks";
+        $files=scandir(SLOTKIT_PATH."/../".$dir);
+
+        foreach ($files as $file) {
+            if (pathinfo($file,PATHINFO_EXTENSION)=="js")
+                $tweaks[]=$dir."/".$file;
+        }
+
+        return $tweaks;
     }
 
     /**

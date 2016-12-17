@@ -1,4 +1,363 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/**
+ * Load a javascript and run it, and shows a progress bar while doing so.
+ *
+ * For making the transition into the actualy application, there are some
+ * other features, such as the ability to not make the progress bar go
+ * to 100%.
+ * @class BundleLoader
+ */
+function BundleLoader() {
+	var s;
+
+	this.element = document.createElement("div");
+	this.element.className = "bundleloader";
+	s = this.element.style;
+	s.position = "fixed";
+	s.top = "0";
+	s.left = "0";
+	s.width = "100%";
+	s.height = "100%";
+	s.background = "#000000";
+	s.display = "none";
+	s.zIndex = 1;
+	s.overflow = "hidden";
+
+	this.titleElement = document.createElement("div");
+	this.titleElement.innerHTML = "LOADING";
+	s = this.titleElement.style;
+	s.position = "absolute";
+	s.top = "50%";
+	s.width = "100%";
+	s.left = "0";
+	s.height = "100px";
+	s.color = "#ffffff";
+	s.textAlign = "center";
+	s.fontFamily = "arial";
+	//	s.fontWeight = "bold";
+	s.fontSize = "17px";
+	s.marginTop = "-32px";
+	this.element.appendChild(this.titleElement);
+
+	this.borderElement = document.createElement("div");
+	s = this.borderElement.style;
+	s.width = "33%";
+	s.height = "10px";
+	s.border = "2px solid white";
+	s.borderRadius = "5px";
+	s.marginLeft = "auto";
+	s.marginRight = "auto";
+	s.top = "50%";
+	s.position = "relative";
+	s.padding = "2px";
+	this.element.appendChild(this.borderElement);
+
+	this.progressElement = document.createElement("div");
+	s = this.progressElement.style;
+	s.background = "#ffffff";
+	s.height = "10px";
+	s.width = "0%";
+	s.left = "0"
+	s.borderRadius = "2px";
+	s.position = "relative";
+	this.borderElement.appendChild(this.progressElement);
+
+	this.animateInterval = null;
+	this.loadRequest = null;
+	this.completeProgress = null;
+
+	this._visible = true;
+}
+
+var proto = BundleLoader.prototype;
+
+/**
+ * Wait for the body to exist so we can attach ourselves.
+ * @method waitForBodyAndAttach
+ * @private
+ */
+proto.waitForBodyAndAttach = function() {
+	var el;
+
+	if (this._parentElement) {
+		el = document.getElementById(this._parentElement);
+		//console.log("p: " + this._parentElement + " ... el: " + el);
+	} else {
+		el = document.body;
+	}
+
+	if (!el) {
+		if (this.loadRequest)
+			setTimeout(this.waitForBodyAndAttach.bind(this), 10);
+
+		return;
+	}
+
+	if (this._visible && !el.contains(this.element))
+		el.appendChild(this.element);
+}
+
+/**
+ * Show the loader, with message and optional percent.
+ *
+ * The percent parameter is optional. If this is omitted the
+ * progress bar will show as in an indefinite state.
+ * @method show
+ * @param {String} title The message to show.
+ * @param {Number} [percent] The percentage of the completion to show.
+ */
+proto.showProgress = function(title, percent) {
+	this.title = title;
+
+	if (this.animateInterval)
+		clearInterval(this.animateInterval);
+
+	this.animateInterval = null;
+
+	this.element.style.display = "block";
+	this.titleElement.innerHTML = title;
+
+	this.borderElement.style.display = "block";
+
+	if (percent != null && percent != undefined) {
+		percent = Math.min(100, parseFloat(percent));
+		this.progressElement.style.left = "0";
+		this.progressElement.style.width = percent + "%";
+	} else {
+		this.animateInterval = setInterval(this.onAnimateInterval.bind(this), 30);
+		this.progressElement.style.width = "33%";
+		this.progressElement.style.left = "0%";
+	}
+}
+
+/**
+ * Show only a message without the progress bar.
+ * @method showMessage
+ * @param {String} title
+ */
+proto.showMessage = function(title) {
+	this.title = title;
+
+	if (this.animateInterval)
+		clearInterval(this.animateInterval);
+
+	this.animateInterval = null;
+
+	this.element.style.display = "block";
+	this.titleElement.innerHTML = title;
+
+	this.borderElement.style.display = "none";
+}
+
+/**
+ * Animate the loader if the size of the load job is not known.
+ * @method onAnimateInterval
+ * @private
+ */
+proto.onAnimateInterval = function() {
+	var current = parseFloat(this.progressElement.style.left);
+
+	current += 3;
+	if (current > 67)
+		current = 0;
+
+	this.progressElement.style.left = current + "%";
+}
+
+/**
+ * Hide the loader.
+ * @method hide
+ */
+proto.hide = function() {
+	if (this.animateInterval)
+		clearInterval(this.animateInterval);
+
+	this.animateInterval = null;
+
+	this.element.style.display = "none";
+}
+
+/**
+ * Load javascript.
+ *
+ * This function loads the javascript from the specified url, and
+ * then runs it.
+ *
+ * By default, the loading screen will be hidden when the script
+ * is run. If there are extra resources to be loaded as part of the
+ * application startup, specify a number for the completeProgress
+ * parameter, and the loading screen will not hide itself, but instead
+ * stop at the specified percentage.
+ *
+ * It is then up to the loaded bundle to actually hide the loader when
+ * all resources are loaded.
+ * @method load
+ * @param {String} urls Url or array of urls to the javascript main bundle file.
+ * @param {String} [message] The message to show while loading.
+ * @param {Number} [completeProgress] The progress to stop at.
+ */
+proto.load = function(urls, message, completeProgress) {
+	if (!message)
+		message = "LOADING";
+
+	if (typeof urls == "string")
+		urls = [urls];
+
+	this.completeProgress = completeProgress;
+
+	if (!this.completeProgress)
+		this.completeProgress = 100;
+
+	if (this.loadRequest)
+		throw new Error("Already loading");
+
+	this.urls = urls;
+	this.currentUrlIndex = 0;
+
+	this.loadNext();
+	this.showProgress(message);
+
+	this.waitForBodyAndAttach();
+}
+
+/**
+ * Load next url.
+ * @method loadNext
+ */
+proto.loadNext = function() {
+	if (this.loadRequest)
+		throw new Error("Already loading");
+
+	if (this.currentUrlIndex >= this.urls.length) {
+		if (this.completeProgress && this.completeProgress < 100)
+			this.showProgress(this.title, this.completeProgress);
+
+		else
+			this.hide();
+
+		if (this.onload)
+			this.onload();
+
+		return;
+	}
+
+	//console.log("loading url: " + this.urls[this.currentUrlIndex]);
+
+	this.loadRequest = new XMLHttpRequest();
+	this.loadRequest.open("GET", this.urls[this.currentUrlIndex], true);
+	this.loadRequest.responseType = 'arraybuffer';
+
+	this.loadRequest.onprogress = this.onLoadRequestProgress.bind(this);
+	this.loadRequest.onload = this.onLoadRequestLoad.bind(this);
+	this.loadRequest.onerror = this.onLoadRequestError.bind(this);
+
+	this.loadRequest.send();
+}
+
+/**
+ * Load request progress.
+ * @method onLoadRequestProgress
+ * @private
+ */
+proto.onLoadRequestProgress = function(e) {
+	if (e.total) {
+		var baseProgress = this.currentUrlIndex * this.completeProgress / this.urls.length;
+		var targetProgress = (this.currentUrlIndex + 1) * this.completeProgress / this.urls.length;
+
+		this.showProgress(
+			this.title,
+			baseProgress + (targetProgress - baseProgress) * e.loaded / e.total
+		);
+	}
+}
+
+/**
+ * Load request complete.
+ * @method onLoadRequestLoad
+ * @private
+ */
+proto.onLoadRequestLoad = function() {
+	if (this.loadRequest.status != 200 || !this.loadRequest.response.byteLength) {
+		this.loadRequest = null;
+		this.showMessage("LOAD ERROR");
+		return;
+	}
+
+	var blob = new Blob([this.loadRequest.response], {
+		type: "text/javascript"
+	});
+
+	var req = this.loadRequest;
+	this.loadRequest = null;
+
+	var script = document.createElement("script");
+	script.src = window.URL.createObjectURL(blob);
+	script.onload = function() {
+		setTimeout(function() {
+			//console.log("rs: "+req.readyState);
+
+			this.currentUrlIndex++;
+			this.showProgress(this.title, this.completeProgress * this.currentUrlIndex / this.urls.length);
+			this.loadNext();
+		}.bind(this), 100);
+	}.bind(this);
+
+	document.getElementsByTagName('head')[0].appendChild(script);
+}
+
+/**
+ * On error.
+ * @method onLoadRequestError
+ * @private
+ */
+proto.onLoadRequestError = function() {
+	this.loadRequest = null;
+	this.showMessage("LOAD ERROR");
+}
+
+/**
+ * Should the loader be visible?
+ * @property visible
+ */
+Object.defineProperty(proto, 'visible', {
+	get: function() {
+		return this._visible;
+	},
+	set: function(value) {
+		this._visible = value;
+
+		if (this._visible && document.body && !document.body.contains(this.element))
+			document.body.appendChild(this.element);
+
+		if (!this._visible && document.body && document.body.contains(this.element))
+			document.body.removeChild(this.element);
+	}
+});
+
+/**
+ * Set parent element.
+ */
+Object.defineProperty(proto, 'parentElement', {
+	get: function() {
+		return this._parentElement
+	},
+	set: function(parentElement) {
+		this._parentElement = parentElement;
+
+		if (this._parentElement)
+			this.element.style.position = "absolute";
+
+		else
+			this.element.style.position = "fixed";
+
+		if (this.element.parentElement)
+			this.element.parentElement.removeChild(this.element);
+	}
+});
+
+if (typeof module !== 'undefined')
+	module.exports = BundleLoader;
+},{}],2:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -23,7 +382,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var PIXI;
 
 if (window.PIXI)
@@ -270,7 +629,7 @@ ContentScaler.prototype.getVisibleRect = function() {
 
 	return new PIXI.Rectangle(x, y, width, height);
 }
-},{"pixi.js":"pixi.js"}],3:[function(require,module,exports){
+},{"pixi.js":"pixi.js"}],4:[function(require,module,exports){
 (function (global){
 var ContentScaler = require("./ContentScaler");
 var EventDispatcher = require("yaed");
@@ -801,7 +1160,7 @@ Object.defineProperty(PixiApp.prototype, "superSampling", {
 	}
 });
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./ContentScaler":2,"pixi.js":"pixi.js","yaed":8}],4:[function(require,module,exports){
+},{"./ContentScaler":3,"pixi.js":"pixi.js","yaed":9}],5:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -983,7 +1342,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function(window) {
     var re = {
         not_string: /[^s]/,
@@ -1193,7 +1552,7 @@ process.umask = function() { return 0; };
     }
 })(typeof window === "undefined" ? this : window);
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (process){
 /**
  * A subset of Promises/A+.
@@ -1430,7 +1789,7 @@ Thenable.delay = function(millis) {
 
 module.exports = Thenable;
 }).call(this,require('_process'))
-},{"_process":4}],7:[function(require,module,exports){
+},{"_process":5}],8:[function(require,module,exports){
 (function (process){
 /**
  * Tween.js - Licensed under the MIT license
@@ -2304,7 +2663,7 @@ TWEEN.Interpolation = {
 })(this);
 
 }).call(this,require('_process'))
-},{"_process":4}],8:[function(require,module,exports){
+},{"_process":5}],9:[function(require,module,exports){
 /**
  * AS3/jquery style event dispatcher. Slightly modified. The
  * jquery style on/off/trigger style of adding listeners is
@@ -2458,7 +2817,7 @@ EventDispatcher.init = function(cls) {
 if (typeof module !== 'undefined') {
 	module.exports = EventDispatcher;
 }
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function (global){
 var inherits = require("inherits");
 var PixiApp = require("pixiapp");
@@ -2468,6 +2827,8 @@ var GameModel = require("../model/GameModel");
 var SymbolView = require("../view/SymbolView");
 var TWEEN = require("tween.js");
 var EventDispatcher = require("yaed");
+var BundleLoader=require("bundleloader");
+var TweakApi=require("./TweakApi");
 
 /**
  * The app.
@@ -2491,6 +2852,8 @@ function SlotApp(options) {
 		this.onGameModelInit.bind(this),
 		this.onGameModelError.bind(this)
 	);
+
+	this.tweakApi=new TweakApi(this);
 }
 
 inherits(SlotApp, PixiApp);
@@ -2519,24 +2882,6 @@ SlotApp.prototype.onGameModelError = function(error) {
 }
 
 /**
- * Run after assets loaded.
- */
-SlotApp.prototype.onAssetsLoaded = function() {
-	console.log("assets loaded");
-
-	this.gameView = new GameView(this.options);
-	this.addChild(this.gameView);
-
-	this.gameController = new GameController(this.options, this.gameView, this.gameModel);
-	setTimeout(function() {
-		if (this.haveError)
-			return;
-
-		this.trigger("complete");
-	}.bind(this), 0);
-}
-
-/**
  * Assets progress.
  */
 SlotApp.prototype.onAssetsProgress = function(ev) {
@@ -2550,8 +2895,73 @@ SlotApp.prototype.onAssetsError = function(ev) {
 	this.haveError = true;
 	this.trigger("error", "ERROR LOADING ASSETS");
 }
+
+/**
+ * Run after assets loaded.
+ */
+SlotApp.prototype.onAssetsLoaded = function() {
+	if (!this.options.tweaks) {
+		this.lastSetupStage();
+		return;
+	}
+
+	window.game=this.tweakApi;
+
+	var tweakLoader=new BundleLoader();
+	tweakLoader.visible=false;
+	tweakLoader.onload=this.onTweaksComplete.bind(this);
+	tweakLoader.onerror=this.onTweaksError.bind(this);
+	tweakLoader.load(this.options.tweaks);
+}
+
+/**
+ * Assets progress.
+ */
+SlotApp.prototype.onTweaksError = function(ev) {
+	this.haveError = true;
+	this.trigger("error", "ERROR LOADING TWEAKS");
+}
+
+/**
+ * Assets progress.
+ */
+SlotApp.prototype.onTweaksComplete = function(ev) {
+	this.lastSetupStage();
+}
+
+/**
+ * Do the last setup stage.
+ */
+SlotApp.prototype.lastSetupStage=function() {
+	this.gameView = new GameView(this.options);
+	this.addChild(this.gameView);
+
+	this.gameController = new GameController(this.options, this.gameView, this.gameModel);
+	setTimeout(function() {
+		if (this.haveError)
+			return;
+
+		this.tweakApi.trigger("init");
+
+		this.trigger("complete");
+	}.bind(this), 0);
+}
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../controller/GameController":10,"../model/GameModel":12,"../view/GameView":24,"../view/SymbolView":29,"inherits":1,"pixiapp":3,"tween.js":7,"yaed":8}],10:[function(require,module,exports){
+},{"../controller/GameController":12,"../model/GameModel":14,"../view/GameView":26,"../view/SymbolView":31,"./TweakApi":11,"bundleloader":1,"inherits":2,"pixiapp":4,"tween.js":8,"yaed":9}],11:[function(require,module,exports){
+var EventDispatcher = require("yaed");
+
+/**
+ * An instance of this class is exposed to the tweaks
+ * as the "game" object.
+ * @class TweakApi.
+ */
+function TweakApi(slotApp) {
+	this.slotApp=slotApp;
+}
+
+EventDispatcher.init(TweakApi);
+module.exports=TweakApi;
+},{"yaed":9}],12:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -2794,7 +3204,7 @@ GameController.prototype.updateKeypadFields = function() {
 	keypad.setLines(this.gameModel.getUserBetLines());
 	keypad.setBet(this.gameModel.getBet());
 }
-},{"tinp":6}],11:[function(require,module,exports){
+},{"tinp":7}],13:[function(require,module,exports){
 module.exports = {
 	baseUrl: "",
 	background: "res/background.png",
@@ -2878,7 +3288,7 @@ module.exports = {
 	flashMessage: null,
 	currency: "none"
 };
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var Xhr = require("../utils/Xhr");
 var Thenable = require("tinp");
 var EventDispatcher = require("yaed");
@@ -3285,7 +3695,7 @@ GameModel.prototype.prevBet = function() {
 }
 
 module.exports = GameModel;
-},{"../utils/Xhr":17,"./DefaultOptions":11,"tinp":6,"yaed":8}],13:[function(require,module,exports){
+},{"../utils/Xhr":19,"./DefaultOptions":13,"tinp":7,"yaed":9}],15:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3316,7 +3726,7 @@ Object.defineProperty(BrightnessFilter.prototype, "brightness", {
 		PIXI.filters.ColorMatrixFilter.prototype.brightness.call(this, this._brightness);
 	}
 });
-},{"inherits":1}],14:[function(require,module,exports){
+},{"inherits":2}],16:[function(require,module,exports){
 /**
  * Cur out sprites from an image representing a grid of sprites.
  */
@@ -3346,7 +3756,7 @@ GridSheet.prototype.createSprite = function(index) {
     return new PIXI.Sprite(t);
 }
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 function PixiUtil() {}
 module.exports = PixiUtil;
 
@@ -3362,7 +3772,7 @@ PixiUtil.findParentOfType = function(child, parentType) {
 
 	return PixiUtil.findParentOfType(child.parent, parentType);
 }
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /**
  * Utl utilities class.
  * @class UrlUtil
@@ -3389,7 +3799,7 @@ UrlUtil.makeAbsolute = function(url, baseUrl) {
 
 module.exports = UrlUtil;
 
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var Thenable = require("tinp");
 
 /**
@@ -3491,7 +3901,7 @@ Xhr.prototype.onRequestReadyStateChange = function() {
 
 	this.sendThenable.resolve(this.response);
 }
-},{"tinp":6}],18:[function(require,module,exports){
+},{"tinp":7}],20:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3579,7 +3989,7 @@ BetLineButton.prototype.setEnabled = function(enabled) {
 BetLineButton.prototype.isEnabled = function(enabled) {
 	return (this.alpha == 1);
 }
-},{"inherits":1}],19:[function(require,module,exports){
+},{"inherits":2}],21:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var BetLineButton = require("./BetLineButton");
@@ -3693,7 +4103,7 @@ BetLineButtonsView.prototype.highlightBetLine = function(betLineIndex) {
 
 	this.buttons[betLineIndex].setHighlight(true);
 }
-},{"./BetLineButton":18,"inherits":1,"yaed":8}],20:[function(require,module,exports){
+},{"./BetLineButton":20,"inherits":2,"yaed":9}],22:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3784,7 +4194,7 @@ BetLineView.prototype.drawBetLine = function(betLine) {
 		);
 	}
 }
-},{"inherits":1}],21:[function(require,module,exports){
+},{"inherits":2}],23:[function(require,module,exports){
 var inherits = require("inherits");
 var BrightnessFilter = require("../utils/BrightnessFilter");
 var EventDispatcher = require("yaed");
@@ -3862,7 +4272,7 @@ ButtonHighlight.prototype.setEnabled = function(enabled) {
 		this.buttonMode = false;
 	}
 }
-},{"../utils/BrightnessFilter":13,"../utils/PixiUtil":15,"inherits":1,"yaed":8}],22:[function(require,module,exports){
+},{"../utils/BrightnessFilter":15,"../utils/PixiUtil":17,"inherits":2,"yaed":9}],24:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3908,7 +4318,7 @@ DialogView.prototype.show = function(message) {
 	this.messageField.text = message;
 	this.messageField.x = 1024 / 2 - this.messageField.width / 2;
 }
-},{"inherits":1}],23:[function(require,module,exports){
+},{"inherits":2}],25:[function(require,module,exports){
 var inherits = require("inherits");
 
 /**
@@ -3965,7 +4375,7 @@ FlashMessageView.prototype.onFlashTimeout = function() {
 	this.messageField.visible = !this.messageField.visible;
 	setTimeout(this.onFlashTimeout.bind(this), 1000);
 }
-},{"inherits":1}],24:[function(require,module,exports){
+},{"inherits":2}],26:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ReelView = require("./ReelView");
@@ -4148,7 +4558,7 @@ GameView.populateAssetLoader = function(options) {
     if (options.symbols)
         PIXI.loader.add(UrlUtil.makeAbsolute(options.symbols, options.baseUrl));
 }
-},{"../utils/UrlUtil":16,"./BetLineButtonsView":19,"./BetLineView":20,"./DialogView":22,"./FlashMessageView":23,"./KeypadView":25,"./PaytableView":27,"./ReelView":28,"./SymbolView":29,"./WinView":30,"inherits":1,"yaed":8}],25:[function(require,module,exports){
+},{"../utils/UrlUtil":18,"./BetLineButtonsView":21,"./BetLineView":22,"./DialogView":24,"./FlashMessageView":25,"./KeypadView":27,"./PaytableView":29,"./ReelView":30,"./SymbolView":31,"./WinView":32,"inherits":2,"yaed":9}],27:[function(require,module,exports){
 var inherits = require("inherits");
 var EventDispatcher = require("yaed");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -4286,7 +4696,7 @@ KeypadView.prototype.setLines = function(lines) {
 	this.linesField.text = lines;
 	this.updateFieldPositions();
 }
-},{"./ButtonHighlight":21,"inherits":1,"yaed":8}],26:[function(require,module,exports){
+},{"./ButtonHighlight":23,"inherits":2,"yaed":9}],28:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 
@@ -4355,7 +4765,7 @@ PaytableEntryView.prototype.updateFieldPosition = function() {
 	this.payoutField.x = this.symbol.width + 20;
 	this.payoutField.y = (this.symbol.height - this.payoutField.height) / 2;
 }
-},{"./SymbolView":29,"inherits":1}],27:[function(require,module,exports){
+},{"./SymbolView":31,"inherits":2}],29:[function(require,module,exports){
 var inherits = require("inherits");
 var PaytableEntryView = require("./PaytableEntryView");
 var ButtonHighlight = require("./ButtonHighlight");
@@ -4497,7 +4907,7 @@ PaytableView.prototype.getCurrentPageIndex = function() {
     return this.currentPageIndex;
 }
 
-},{"../utils/UrlUtil":16,"./ButtonHighlight":21,"./PaytableEntryView":26,"inherits":1,"yaed":8}],28:[function(require,module,exports){
+},{"../utils/UrlUtil":18,"./ButtonHighlight":23,"./PaytableEntryView":28,"inherits":2,"yaed":9}],30:[function(require,module,exports){
 var inherits = require("inherits");
 var SymbolView = require("./SymbolView");
 var PixiUtil = require("../utils/PixiUtil");
@@ -4685,7 +5095,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween.start();
 	}
 }
-},{"../utils/PixiUtil":15,"./SymbolView":29,"inherits":1,"tinp":6,"tween.js":7}],29:[function(require,module,exports){
+},{"../utils/PixiUtil":17,"./SymbolView":31,"inherits":2,"tinp":7,"tween.js":8}],31:[function(require,module,exports){
 var inherits = require("inherits");
 var TWEEN = require("tween.js");
 var Thenable = require("tinp");
@@ -4779,7 +5189,7 @@ SymbolView.prototype.playBetLineWin = function() {
 
     return thenable;
 }
-},{"../utils/GridSheet":14,"../utils/UrlUtil":16,"inherits":1,"tinp":6,"tween.js":7}],30:[function(require,module,exports){
+},{"../utils/GridSheet":16,"../utils/UrlUtil":18,"inherits":2,"tinp":7,"tween.js":8}],32:[function(require,module,exports){
 var inherits = require("inherits");
 var Thenable = require("tinp");
 var TWEEN = require("tween.js");
@@ -4944,4 +5354,4 @@ WinView.prototype.updateWinCount = function() {
 	this.winPlateField.text = "Total win: " + parseFloat(v.toFixed(places));
 	this.winPlateField.x = this.options.winPlateX - this.winPlateField.width / 2;
 }
-},{"inherits":1,"sprintf-js":5,"tinp":6,"tween.js":7}]},{},[9]);
+},{"inherits":2,"sprintf-js":6,"tinp":7,"tween.js":8}]},{},[10]);

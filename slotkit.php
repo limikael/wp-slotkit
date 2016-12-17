@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__."/includes/plugin/SlotkitPlugin.php";
-
 /*
 Plugin Name: Slot Kit
 Plugin URI: https://github.com/limikael/wp-slotkit
@@ -12,6 +10,8 @@ Version: 0.0.1
 
 define('SLOTKIT_PATH',plugin_dir_path(__FILE__));
 define('SLOTKIT_URL',plugins_url('',__FILE__));
+
+require_once __DIR__."/includes/plugin/SlotkitPlugin.php";
 
 if (!defined("RWMB_URL")) {
 	define("RWMB_URL",SLOTKIT_URL."/ext/meta-box/");

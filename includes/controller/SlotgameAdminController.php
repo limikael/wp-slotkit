@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__."/../utils/Singleton.php";
+require_once __DIR__."/../model/Tweak.php";
 
 use slotkit\Singleton;
 
@@ -13,6 +14,8 @@ class SlotgameAdminController extends Singleton {
 	 * Constructor.
 	 */
 	protected function __construct() {
+		if (is_admin())
+			wp_enqueue_script("slotkit-admin",SLOTKIT_URL."/bin/slotkit-admin.js");
 	}
 
 	/**
@@ -90,9 +93,67 @@ class SlotgameAdminController extends Singleton {
 			)
 		);
 
+		$tweaks=Tweak::getAll();
+		$tweakOptions=array();
+		foreach ($tweaks as $tweak)
+			$tweakOptions[$tweak->getFileName()]=$tweak->getName();
+
+		$fields=array();
+		$fields[]=array(
+            'id'   => 'tweaks',
+            'type' => 'select_advanced',
+//            'type' => 'select',
+            'name' => "Enabled Tweaks",
+            "options"=>$tweakOptions,
+            "clone"=>TRUE
+		);
+
+		$fields[]=array(
+			"id"=>"tweakParametersScript",
+			"type"=>"custom_html",
+			"callback"=>array($this,"tweakParametersScript")
+		);
+
+		foreach ($tweaks as $tweak)
+			foreach ($tweak->getFieldNames() as $name) {
+				$parameters=$tweak->getFieldParameters($name);
+				$fields[]=array(
+					"id"=>$name,
+					"name"=>$parameters["label"],
+					"desc"=>$parameters["desc"]
+				);
+			}
+
+		$metaBoxes[]=array(
+			"title"=>"Tweaks",
+			"post_types"=>"slotgame",
+			"priority"=>"low",
+			"fields"=>$fields
+		);
 
 		return $metaBoxes;
 	}
+
+	function tweakParametersScript() {
+		$tweaks=Tweak::getAll();
+		$tweakParameters=array();
+
+		foreach ($tweaks as $tweak) {
+			$tweakId=$tweak->getFileName();
+			$tweakParameters[$tweakId]=array();
+
+			foreach ($tweak->getFieldNames() as $fieldName)
+				$tweakParameters[$tweakId][]=$fieldName;
+		}
+
+		echo "<script>";
+		echo "var SLOTKIT_TWEAK_PARAMETERS=".json_encode($tweakParameters).";";
+		echo "</script>";
+	}
+}
+
+function my_custom_callback() {
+//	echo "hello more";
 }
 
 if (is_admin())

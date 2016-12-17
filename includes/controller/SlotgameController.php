@@ -188,6 +188,10 @@ class SlotgameController {
 		$response["paytable"]=$slotgame->getPaytable();
 		$response["currency"]=$currency;
 
+		$response["tweaks"]=array(
+			SLOTKIT_URL."/tweaks/hello.js"
+		);
+
 		echo json_encode($response);
 		exit;
 	}

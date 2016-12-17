@@ -6,6 +6,8 @@ var GameModel = require("../model/GameModel");
 var SymbolView = require("../view/SymbolView");
 var TWEEN = require("tween.js");
 var EventDispatcher = require("yaed");
+var BundleLoader=require("bundleloader");
+var TweakApi=require("./TweakApi");
 
 /**
  * The app.
@@ -29,6 +31,8 @@ function SlotApp(options) {
 		this.onGameModelInit.bind(this),
 		this.onGameModelError.bind(this)
 	);
+
+	this.tweakApi=new TweakApi(this);
 }
 
 inherits(SlotApp, PixiApp);
@@ -57,24 +61,6 @@ SlotApp.prototype.onGameModelError = function(error) {
 }
 
 /**
- * Run after assets loaded.
- */
-SlotApp.prototype.onAssetsLoaded = function() {
-	console.log("assets loaded");
-
-	this.gameView = new GameView(this.options);
-	this.addChild(this.gameView);
-
-	this.gameController = new GameController(this.options, this.gameView, this.gameModel);
-	setTimeout(function() {
-		if (this.haveError)
-			return;
-
-		this.trigger("complete");
-	}.bind(this), 0);
-}
-
-/**
  * Assets progress.
  */
 SlotApp.prototype.onAssetsProgress = function(ev) {
@@ -87,4 +73,55 @@ SlotApp.prototype.onAssetsProgress = function(ev) {
 SlotApp.prototype.onAssetsError = function(ev) {
 	this.haveError = true;
 	this.trigger("error", "ERROR LOADING ASSETS");
+}
+
+/**
+ * Run after assets loaded.
+ */
+SlotApp.prototype.onAssetsLoaded = function() {
+	if (!this.options.tweaks) {
+		this.lastSetupStage();
+		return;
+	}
+
+	window.game=this.tweakApi;
+
+	var tweakLoader=new BundleLoader();
+	tweakLoader.visible=false;
+	tweakLoader.onload=this.onTweaksComplete.bind(this);
+	tweakLoader.onerror=this.onTweaksError.bind(this);
+	tweakLoader.load(this.options.tweaks);
+}
+
+/**
+ * Assets progress.
+ */
+SlotApp.prototype.onTweaksError = function(ev) {
+	this.haveError = true;
+	this.trigger("error", "ERROR LOADING TWEAKS");
+}
+
+/**
+ * Assets progress.
+ */
+SlotApp.prototype.onTweaksComplete = function(ev) {
+	this.lastSetupStage();
+}
+
+/**
+ * Do the last setup stage.
+ */
+SlotApp.prototype.lastSetupStage=function() {
+	this.gameView = new GameView(this.options);
+	this.addChild(this.gameView);
+
+	this.gameController = new GameController(this.options, this.gameView, this.gameModel);
+	setTimeout(function() {
+		if (this.haveError)
+			return;
+
+		this.tweakApi.trigger("init");
+
+		this.trigger("complete");
+	}.bind(this), 0);
 }
