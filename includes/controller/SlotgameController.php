@@ -188,9 +188,13 @@ class SlotgameController {
 		$response["paytable"]=$slotgame->getPaytable();
 		$response["currency"]=$currency;
 
-		$response["tweaks"]=array(
-			SLOTKIT_URL."/tweaks/hello.js"
-		);
+		$pluginUrl=plugins_url(); //"hello";
+		$response["tweaks"]=array();
+		foreach ($slotgame->getMeta("tweaks") as $tweak)
+			$response["tweaks"][]=$pluginUrl."/".$tweak;
+
+		foreach ($slotgame->getEnabledTweakFields() as $tweakField)
+			$response[$tweakField]=$slotgame->getMeta($tweakField);
 
 		echo json_encode($response);
 		exit;

@@ -47,6 +47,11 @@ jQuery(function($) {
 	}
 
 	$(document).ready(function() {
+		return;
+
+		if (typeof SLOTKIT_TWEAK_PARAMETERS==="undefined")
+			return;
+
 		updateTweakParameters();
 
 		$("#tweaks").change(updateTweakParameters);

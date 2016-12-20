@@ -18,6 +18,35 @@ class Slotgame {
 	}
 
 	/**
+	 * Get enabled tweaks.
+	 */
+	public function getEnabledTweaks() {
+		$enabledTweaks=array();
+
+		foreach ($this->getMeta("tweaks") as $tweakFileName) {
+			$tweak=Tweak::fromFileName($tweakFileName);
+			if ($tweak)
+				$enabledTweaks[]=$tweak;
+		}
+
+		return $enabledTweaks;
+	}
+
+	/**
+	 * Get enabled tweak fields.
+	 */
+	public function getEnabledTweakFields() {
+		$allFieldNames=array();
+		$enabledTweaks=$this->getEnabledTweaks();
+		foreach ($enabledTweaks as $enabledTweak) {
+			foreach ($enabledTweak->getFieldNames() as $fieldName)
+				$allFieldNames[]=$fieldName;
+		}
+
+		return $allFieldNames;
+	}
+
+	/**
 	 * Get id.
 	 */
 	public function getId() {

@@ -6,5 +6,13 @@
  */
 
 game.on("init",function() {
-	console.log("the game is initialized...");
+	console.log("will darken by: "+game.options.darkenNonWinningAmount);
+});
+
+game.on("symbolWinPresentationComplete",function(ev) {
+	ev.symbol.alpha=1;
+});
+
+game.on("symbolWinPresentationNoWin",function(ev) {
+	ev.symbol.alpha=.5;
 });

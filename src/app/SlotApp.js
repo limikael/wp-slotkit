@@ -33,6 +33,7 @@ function SlotApp(options) {
 	);
 
 	this.tweakApi=new TweakApi(this);
+	this.tweakApi.options=options;
 }
 
 inherits(SlotApp, PixiApp);

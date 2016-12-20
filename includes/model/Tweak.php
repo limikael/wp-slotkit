@@ -49,7 +49,13 @@ class Tweak {
 				$this->fields[$params["name"]]=$params;
 			}
 		}
+	}
 
+	/**
+	 * Get tweak from filename.
+	 */
+	public static function fromFileName($fileName) {
+		return new Tweak($fileName);
 	}
 
 	/**
