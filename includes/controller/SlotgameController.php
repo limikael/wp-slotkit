@@ -190,7 +190,7 @@ class SlotgameController {
 
 		$pluginUrl=plugins_url(); //"hello";
 		$response["tweaks"]=array();
-		foreach ($slotgame->getMeta("tweaks") as $tweak)
+		foreach ($slotgame->getMetas("tweaks") as $tweak)
 			$response["tweaks"][]=$pluginUrl."/".$tweak;
 
 		foreach ($slotgame->getEnabledTweakFields() as $tweakField)

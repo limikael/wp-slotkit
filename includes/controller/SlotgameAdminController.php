@@ -101,11 +101,13 @@ class SlotgameAdminController extends Singleton {
 		$fields=array();
 		$fields[]=array(
             'id'   => 'tweaks',
-            'type' => 'select_advanced',
+//            'type' => 'select_advanced',
 //            'type' => 'select',
+            'type'=>"checkbox_list",
             'name' => "Enabled Tweaks",
             "options"=>$tweakOptions,
-            "clone"=>TRUE
+//            "clone"=>TRUE
+			"desc"=>"Select the tweaks the should be enabled for the game."
 		);
 
 		$fields[]=array(

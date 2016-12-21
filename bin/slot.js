@@ -2868,6 +2868,7 @@ global.SlotApp = SlotApp;
  */
 SlotApp.prototype.onGameModelInit = function() {
 	this.options = this.gameModel.getOptions();
+	this.options.tweakApi=this.tweakApi;
 
 	GameView.populateAssetLoader(this.options);
 	PIXI.loader.on("progress", this.onAssetsProgress.bind(this));

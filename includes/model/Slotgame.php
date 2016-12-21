@@ -23,7 +23,7 @@ class Slotgame {
 	public function getEnabledTweaks() {
 		$enabledTweaks=array();
 
-		foreach ($this->getMeta("tweaks") as $tweakFileName) {
+		foreach ($this->getMetas("tweaks") as $tweakFileName) {
 			$tweak=Tweak::fromFileName($tweakFileName);
 			if ($tweak)
 				$enabledTweaks[]=$tweak;
@@ -65,6 +65,13 @@ class Slotgame {
 	 */
 	public function getMeta($key) {
 		return get_post_meta($this->post->ID,"$key",TRUE);
+	}
+
+	/**
+	 * Get meta.
+	 */
+	public function getMetas($key) {
+		return get_post_meta($this->post->ID,"$key",FALSE);
 	}
 
 	/**

@@ -3,10 +3,9 @@ jQuery(function($) {
 	function getEnabledTweaks() {
 		var enabled=[];
 
-		$("[id^=tweaks]").find(":selected").each(function() {
-			var v=$(this).val();
-			if (v)
-				enabled.push(v);
+		$("input[name='tweaks[]']").each(function() {
+			if ($(this).attr("checked"))
+				enabled.push($(this).val());
 		});
 
 		return enabled;
@@ -42,20 +41,11 @@ jQuery(function($) {
 		}
 	}
 
-	function updateTweakParametersDelayed() {
-		setTimeout(updateTweakParameters,0);
-	}
-
 	$(document).ready(function() {
-		return;
-
 		if (typeof SLOTKIT_TWEAK_PARAMETERS==="undefined")
 			return;
 
 		updateTweakParameters();
-
-		$("#tweaks").change(updateTweakParameters);
-		$(".add-clone").click(updateTweakParametersDelayed);
-		$(document).on("click",".remove-clone",updateTweakParametersDelayed);
+		$("input[name='tweaks[]']").change(updateTweakParameters);
 	});
 });
