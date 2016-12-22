@@ -70,7 +70,35 @@ SymbolView.generateSymbolFrameId = function(format, id) {
     return format;
 }
 
+SymbolView.prototype.playNoWin = function() {
+    var ev={
+        symbolSprite: this.symbolSprite,
+        reelIndex: this.reelIndex,
+        rowIndex: this.rowIndex
+    };
+
+    this.options.tweakApi.trigger("symbolWinPresentationNoWin",ev);
+}
+
+SymbolView.prototype.winPresentationComplete=function() {
+    var ev={
+        symbolSprite: this.symbolSprite,
+        reelIndex: this.reelIndex,
+        rowIndex: this.rowIndex
+    };
+
+    this.options.tweakApi.trigger("symbolWinPresentationComplete",ev);
+}
+
 SymbolView.prototype.playBetLineWin = function() {
+    var ev={
+        symbolSprite: this.symbolSprite,
+        reelIndex: this.reelIndex,
+        rowIndex: this.rowIndex
+    };
+
+    this.options.tweakApi.trigger("symbolWinPresentationWin",ev);
+
     var thenable = new Thenable();
 
     this.tween = new TWEEN.Tween(this.scale);

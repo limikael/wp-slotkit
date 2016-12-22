@@ -3155,6 +3155,13 @@ GameController.prototype.onSpinComplete = function() {
  */
 GameController.prototype.playBetLineWin = function() {
 	if (this.winBetLineIndex >= this.gameModel.getNumWinBetLines()) {
+		for (var reelIndex=0; reelIndex < this.options.numReels; reelIndex++) {
+			for (var rowIndex=0; rowIndex < this.options.numRows; rowIndex++) {
+				var symbolView=this.gameView.getSymbolViewAt(reelIndex,rowIndex);
+				symbolView.winPresentationComplete();
+			}
+		}
+
 		this.gameModel.notifySpinComplete();
 		return;
 	}
@@ -3165,8 +3172,17 @@ GameController.prototype.playBetLineWin = function() {
 	var winBetLine = this.gameModel.getWinBetLine(this.winBetLineIndex);
 	var t = [];
 
-	for (var i = 0; i < winBetLine.length; i++)
-		t.push(this.gameView.getSymbolViewAt(i, winBetLine[i]).playBetLineWin());
+	for (var reelIndex=0; reelIndex < this.options.numReels; reelIndex++) {
+		for (var rowIndex=0; rowIndex < this.options.numRows; rowIndex++) {
+			var symbolView=this.gameView.getSymbolViewAt(reelIndex,rowIndex);
+
+			if (winBetLine[reelIndex]==rowIndex)
+				t.push(symbolView.playBetLineWin());
+
+			else
+				symbolView.playNoWin();
+		}
+	}
 
 	var a = this.gameModel.getWinBetLineAmount(this.winBetLineIndex);
 	t.push(this.gameView.getWinView().showWin(a));
@@ -5170,7 +5186,35 @@ SymbolView.generateSymbolFrameId = function(format, id) {
     return format;
 }
 
+SymbolView.prototype.playNoWin = function() {
+    var ev={
+        symbolSprite: this.symbolSprite,
+        reelIndex: this.reelIndex,
+        rowIndex: this.rowIndex
+    };
+
+    this.options.tweakApi.trigger("symbolWinPresentationNoWin",ev);
+}
+
+SymbolView.prototype.winPresentationComplete=function() {
+    var ev={
+        symbolSprite: this.symbolSprite,
+        reelIndex: this.reelIndex,
+        rowIndex: this.rowIndex
+    };
+
+    this.options.tweakApi.trigger("symbolWinPresentationComplete",ev);
+}
+
 SymbolView.prototype.playBetLineWin = function() {
+    var ev={
+        symbolSprite: this.symbolSprite,
+        reelIndex: this.reelIndex,
+        rowIndex: this.rowIndex
+    };
+
+    this.options.tweakApi.trigger("symbolWinPresentationWin",ev);
+
     var thenable = new Thenable();
 
     this.tween = new TWEEN.Tween(this.scale);

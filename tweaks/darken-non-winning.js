@@ -10,9 +10,13 @@ game.on("init",function() {
 });
 
 game.on("symbolWinPresentationComplete",function(ev) {
-	ev.symbol.alpha=1;
+	ev.symbolSprite.alpha=1;
+});
+
+game.on("symbolWinPresentationWin",function(ev) {
+	ev.symbolSprite.alpha=1;
 });
 
 game.on("symbolWinPresentationNoWin",function(ev) {
-	ev.symbol.alpha=.5;
+	ev.symbolSprite.alpha=1-(game.options.darkenNonWinningAmount/100);
 });
