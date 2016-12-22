@@ -18,6 +18,23 @@ class SlotgameOutcome {
 		$this->bet=$bet;
 		$this->numBetLines=$numBetLines;
 
+		if ($numBetLines>sizeof($this->slotgame->getBetLines()))
+			throw new Exception("Too many bet lines");
+
+		$this->generateShuffledReels();
+	}
+
+	/**
+	 * Get total bet.
+	 */
+	public function getTotalBet() {
+		return $this->bet*$this->numBetLines;
+	}
+
+	/**
+	 * Generate shuffled reels.
+	 */
+	private function generateShuffledReels() {
 		$symbols=range(0,$this->slotgame->getNumSymbols()-1);
 		$this->reels=array();
 		for ($reelIndex=0; $reelIndex<$this->slotgame->getNumReels(); $reelIndex++) {
@@ -30,21 +47,31 @@ class SlotgameOutcome {
 			$this->reels[]=$reel;
 		}
 
-		if ($numBetLines>sizeof($this->slotgame->getBetLines()))
-			throw new Exception("Too many bet lines");
-
-		$this->betLineWins=array();
-		for ($i=0; $i<$numBetLines; $i++)
-			$this->checkBetLine($i);
+		$this->checkBetLines();
 	}
 
 	/**
-	 * Get total bet.
+	 * Set reels (for faked outcome).
 	 */
-	public function getTotalBet() {
-		return $this->bet*$this->numBetLines;
+	public function setReels($reels) {
+		if (sizeof($reels)!=$this->slotgame->getNumReels())
+			throw new Exception("Wrong number of reels");
+
+		if (sizeof($reels[0])!=$this->slotgame->getNumRows())
+			throw new Exception("Wrong number of rows");
+
+		$this->reels=$reels;
+		$this->checkBetLines();
 	}
 
+	/**
+	 * Check winning bet lines.
+	 */
+	private function checkBetLines() {
+		$this->betLineWins=array();
+		for ($i=0; $i<$this->numBetLines; $i++)
+			$this->checkBetLine($i);
+	}
 
 	/**
 	 * Check a betline by index.
@@ -69,7 +96,6 @@ class SlotgameOutcome {
 			$this->betLineWins[]=array(
 				"betLine"=>$betLineIndex,
 				"numSymbols"=>$numSymbols,
-				/*"multiplier"=>$paytable[$sym][$numSymbols-1],*/
 				"amount"=>$this->bet*$paytable[$sym][$numSymbols-1]
 			);
 		}

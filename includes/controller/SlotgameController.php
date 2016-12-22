@@ -168,6 +168,11 @@ class SlotgameController {
 			"&id=".$_REQUEST["id"].
 			"&currency=".$currency;
 
+		if (isset($_REQUEST["fakeOutcome"])) {
+			$response["spinUrl"].="&fakeOutcome=".$_REQUEST["fakeOutcome"];
+			$response["flashMessage"]="FAKE OUTCOME";
+		}
+
 		if ($slotgame->getMeta("backgroundImage"))
 			$response["background"]=
 				wp_get_attachment_image_url($slotgame->getMeta("backgroundImage"),"full");
@@ -222,17 +227,31 @@ class SlotgameController {
 		$response=array();
 
 		if ($slotUser) {
-			$slotUser->changeBalance($currency,-$totalBet,"Spin");
+			if (!isset($_REQUEST["fakeOutcome"]))
+				$slotUser->changeBalance($currency,-$totalBet,"Spin");
+
 			$response["spinBalance"]=$slotUser->getBalance($currency);
 		}
 
-		$outcome=$slotgame->generateOutcome($_REQUEST["betLines"],$_REQUEST["bet"]);
+		if (isset($_REQUEST["fakeOutcome"])) {
+			$outcome=$slotgame->generateFakeOutcome(
+				$_REQUEST["betLines"],
+				$_REQUEST["bet"],
+				$_REQUEST["fakeOutcome"]
+			);
+		}
+
+		else {
+			$outcome=$slotgame->generateOutcome($_REQUEST["betLines"],$_REQUEST["bet"]);
+		}
+
 		$response["reels"]=$outcome->getReels();
 		$response["betLineWins"]=$outcome->getBetLineWins();
 
 		if ($slotUser) {
-			if ($outcome->getTotalWin())
-				$slotUser->changeBalance($currency,$outcome->getTotalWin(),"Win");
+			if (!isset($_REQUEST["fakeOutcome"]))
+				if ($outcome->getTotalWin())
+					$slotUser->changeBalance($currency,$outcome->getTotalWin(),"Win");
 
 			$response["balance"]=$slotUser->getBalance($currency);
 		}
@@ -290,12 +309,15 @@ class SlotgameController {
 		foreach ($currencies as $currency)
 			$view["currencies"][]=$currency;
 
-		$view["initUrl"]=admin_url(
-			"admin-ajax.php?".
+		$url="admin-ajax.php?".
 			"action=slotkit_init&".
 			"id=".$slotgame->getId().
-			"&currency=".$userCurrency
-		);
+			"&currency=".$userCurrency;
+
+		if (isset($_REQUEST["fakeOutcome"]))
+			$url.="&fakeOutcome=".$_REQUEST["fakeOutcome"];
+
+		$view["initUrl"]=admin_url($url);
 
 		$t=new Template(__DIR__."/../template/slotgame.php");
 		$t->display($view);

@@ -154,6 +154,18 @@ class Slotgame {
 	}
 
 	/**
+	 * Generate a fake outcome.
+	 */
+	public function generateFakeOutcome($numBetLines, $bet, $scenarioIndex) {
+		$outcome=new SlotgameOutcome($this,$numBetLines,$bet);
+
+		$reels=$this->getFakeReels();
+		$outcome->setReels($reels[$scenarioIndex]);
+
+		return $outcome;
+	}
+
+	/**
 	 * Return slug=>name array of rules.
 	 */
 	public static function getAvailableRules() {
@@ -161,6 +173,38 @@ class Slotgame {
 			"default"=>"Standard (5 reels, 3 rows, 3x3 symbol sheet, 20 betlines)",
 			"oneLine"=>"One bet line (5 reels, 3 rows, 3x3 symbol sheet, 1 betline)",
 		);
+	}
+
+	/**
+	 * Get fake reels.
+	 */
+	public function getFakeReels() {
+		switch ($this->getRules()) {
+			case 'default':
+			case 'oneLine':
+				return array(
+					array(
+						array(1,1,1),
+						array(2,2,2),
+						array(3,3,3),
+						array(4,4,4),
+						array(5,5,5),
+					),
+
+					array(
+						array(1,1,1),
+						array(1,2,2),
+						array(1,3,3),
+						array(4,4,4),
+						array(5,5,5),
+					),
+				);
+
+				break;
+			
+			default:
+				throw new Exception("Unknown rules: ".$this->rules);
+		}
 	}
 
 	/**
@@ -236,5 +280,4 @@ class Slotgame {
 
 		return $slotgames;
 	}
-
 }
