@@ -86,11 +86,19 @@ ReelView.prototype.createSymbolClip = function(rowIndex, symbolId) {
 	symbolView.setSymbolId(symbolId);
 	this.symbols.push(symbolView);
 	this.symbolHolder.addChild(symbolView);
+
+	symbolView.triggerEvent("symbolCreated","idle");
+	symbolView.triggerSymbolStateChange("idle");
 }
 
 ReelView.prototype.createSymbolClips = function() {
-	for (var i = 0; i < this.symbols.length; i++)
-		this.symbolHolder.removeChild(this.symbols[i]);
+	for (var i = 0; i < this.symbols.length; i++) {
+		var symbolView=this.symbols[i];
+		symbolView.triggerSymbolStateChange("removed");
+		symbolView.triggerEvent("symbolRemoved","removed");
+
+		this.symbolHolder.removeChild(symbolView);
+	}
 
 	this.symbols = [];
 
@@ -139,6 +147,11 @@ ReelView.prototype.startSpin = function() {
 }
 
 ReelView.prototype.doStartSpin = function() {
+	for (var i = 0; i < this.symbols.length; i++) {
+		var symbolView=this.symbols[i];
+		symbolView.triggerSymbolStateChange("spin");
+	}
+
 	this.clearTimeout();
 	this.clearPosition();
 
@@ -160,6 +173,11 @@ ReelView.prototype.playSpinTween = function() {
 
 	if (this.stopping) {
 		this.createSymbolClips();
+		for (var i = 0; i < this.symbols.length; i++) {
+			var symbolView=this.symbols[i];
+			symbolView.triggerSymbolStateChange("spin");
+		}
+
 		this.tween = new TWEEN.Tween(this);
 		this.tween.to({
 			reelOffset: 0
@@ -169,6 +187,11 @@ ReelView.prototype.playSpinTween = function() {
 			this.updateSymbolHolderPosition();
 		}.bind(this));
 		this.tween.onComplete(function() {
+			for (var i = 0; i < this.symbols.length; i++) {
+				var symbolView=this.symbols[i];
+				symbolView.triggerSymbolStateChange("idle");
+			}
+
 			this.tween = null;
 			this.stopThenable.resolve()
 		}.bind(this));

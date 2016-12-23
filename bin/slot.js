@@ -2871,6 +2871,10 @@ SlotApp.prototype.onGameModelInit = function() {
 	this.options.tweakApi=this.tweakApi;
 
 	GameView.populateAssetLoader(this.options);
+
+	for (var i=0; i<this.options.assets.length; i++)
+		PIXI.loader.add(this.options.assets[i]);
+
 	PIXI.loader.on("progress", this.onAssetsProgress.bind(this));
 	PIXI.loader.on("error", this.onAssetsError.bind(this));
 	PIXI.loader.load(this.onAssetsLoaded.bind(this));
@@ -2908,6 +2912,7 @@ SlotApp.prototype.onAssetsLoaded = function() {
 	}
 
 	window.game=this.tweakApi;
+	window.TWEEN=TWEEN;
 
 	var tweakLoader=new BundleLoader();
 	tweakLoader.visible=false;
@@ -5014,11 +5019,19 @@ ReelView.prototype.createSymbolClip = function(rowIndex, symbolId) {
 	symbolView.setSymbolId(symbolId);
 	this.symbols.push(symbolView);
 	this.symbolHolder.addChild(symbolView);
+
+	symbolView.triggerEvent("symbolCreated","idle");
+	symbolView.triggerSymbolStateChange("idle");
 }
 
 ReelView.prototype.createSymbolClips = function() {
-	for (var i = 0; i < this.symbols.length; i++)
-		this.symbolHolder.removeChild(this.symbols[i]);
+	for (var i = 0; i < this.symbols.length; i++) {
+		var symbolView=this.symbols[i];
+		symbolView.triggerSymbolStateChange("removed");
+		symbolView.triggerEvent("symbolRemoved","removed");
+
+		this.symbolHolder.removeChild(symbolView);
+	}
 
 	this.symbols = [];
 
@@ -5067,6 +5080,11 @@ ReelView.prototype.startSpin = function() {
 }
 
 ReelView.prototype.doStartSpin = function() {
+	for (var i = 0; i < this.symbols.length; i++) {
+		var symbolView=this.symbols[i];
+		symbolView.triggerSymbolStateChange("spin");
+	}
+
 	this.clearTimeout();
 	this.clearPosition();
 
@@ -5088,6 +5106,11 @@ ReelView.prototype.playSpinTween = function() {
 
 	if (this.stopping) {
 		this.createSymbolClips();
+		for (var i = 0; i < this.symbols.length; i++) {
+			var symbolView=this.symbols[i];
+			symbolView.triggerSymbolStateChange("spin");
+		}
+
 		this.tween = new TWEEN.Tween(this);
 		this.tween.to({
 			reelOffset: 0
@@ -5097,6 +5120,11 @@ ReelView.prototype.playSpinTween = function() {
 			this.updateSymbolHolderPosition();
 		}.bind(this));
 		this.tween.onComplete(function() {
+			for (var i = 0; i < this.symbols.length; i++) {
+				var symbolView=this.symbols[i];
+				symbolView.triggerSymbolStateChange("idle");
+			}
+
 			this.tween = null;
 			this.stopThenable.resolve()
 		}.bind(this));
@@ -5186,34 +5214,31 @@ SymbolView.generateSymbolFrameId = function(format, id) {
     return format;
 }
 
-SymbolView.prototype.playNoWin = function() {
+SymbolView.prototype.triggerEvent=function(type, state) {
     var ev={
         symbolSprite: this.symbolSprite,
         reelIndex: this.reelIndex,
-        rowIndex: this.rowIndex
+        rowIndex: this.rowIndex,
+        state: state
     };
 
-    this.options.tweakApi.trigger("symbolWinPresentationNoWin",ev);
+    this.options.tweakApi.trigger(type,ev);
+}
+
+SymbolView.prototype.triggerSymbolStateChange=function(state) {
+    this.triggerEvent("symbolStateChange",state);
+}
+
+SymbolView.prototype.playNoWin = function() {
+    this.triggerSymbolStateChange("noWin");
 }
 
 SymbolView.prototype.winPresentationComplete=function() {
-    var ev={
-        symbolSprite: this.symbolSprite,
-        reelIndex: this.reelIndex,
-        rowIndex: this.rowIndex
-    };
-
-    this.options.tweakApi.trigger("symbolWinPresentationComplete",ev);
+    this.triggerSymbolStateChange("idle");
 }
 
 SymbolView.prototype.playBetLineWin = function() {
-    var ev={
-        symbolSprite: this.symbolSprite,
-        reelIndex: this.reelIndex,
-        rowIndex: this.rowIndex
-    };
-
-    this.options.tweakApi.trigger("symbolWinPresentationWin",ev);
+    this.triggerSymbolStateChange("win");
 
     var thenable = new Thenable();
 

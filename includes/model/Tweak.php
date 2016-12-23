@@ -44,6 +44,9 @@ class Tweak {
 				if (!isset($params["label"]))
 					$params["label"]=$params["name"];
 
+				if (!isset($params["type"]))
+					$params["type"]="text";
+
 				//error_log(print_r($r,TRUE));
 
 				$this->fields[$params["name"]]=$params;

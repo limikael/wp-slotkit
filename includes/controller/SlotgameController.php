@@ -193,13 +193,37 @@ class SlotgameController {
 		$response["paytable"]=$slotgame->getPaytable();
 		$response["currency"]=$currency;
 
-		$pluginUrl=plugins_url(); //"hello";
+		$pluginUrl=plugins_url();
 		$response["tweaks"]=array();
 		foreach ($slotgame->getMetas("tweaks") as $tweak)
 			$response["tweaks"][]=$pluginUrl."/".$tweak;
 
-		foreach ($slotgame->getEnabledTweakFields() as $tweakField)
-			$response[$tweakField]=$slotgame->getMeta($tweakField);
+		$response["assets"]=array();
+
+		foreach ($slotgame->getEnabledTweaks() as $tweak) {
+			foreach ($tweak->getFieldNames() as $fieldName) {
+				$fieldParameters=$tweak->getFieldParameters($fieldName);
+
+				error_log(print_r($fieldParameters,TRUE));
+
+				switch ($fieldParameters["type"]) {
+					case "text":
+						$response[$fieldName]=$slotgame->getMeta($fieldName);
+						break;
+
+					case "image":
+						$id=$slotgame->getMeta($fieldName);
+						$url=wp_get_attachment_url($slotgame->getMeta($fieldName));
+						$response[$fieldName]=$url;
+						if ($url)
+							$response["assets"][]=$url;
+						break;
+
+					default:
+						throw new Exception("Unknown field parameter type: ".$fieldParameters["type"]);
+				}
+			}
+		}
 
 		echo json_encode($response);
 		exit;

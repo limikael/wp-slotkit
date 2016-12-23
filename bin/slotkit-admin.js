@@ -33,11 +33,17 @@ jQuery(function($) {
 		for (var i=0; i<allTweakParameters.length; i++) {
 			var parameterName=allTweakParameters[i];
 
-			if (enabledTweakParameters.indexOf(parameterName)>=0)
+			if (enabledTweakParameters.indexOf(parameterName)>=0) {
 				$("#"+parameterName).closest(".rwmb-field").show();
+				$("[data-field_id='"+parameterName+"'").closest(".rwmb-field").show();
+				$("[name='"+parameterName+"[]']").closest(".rwmb-field").show();
+			}
 
-			else
+			else {
 				$("#"+parameterName).closest(".rwmb-field").hide();
+				$("[data-field_id='"+parameterName+"'").closest(".rwmb-field").hide();
+				$("[name='"+parameterName+"[]']").closest(".rwmb-field").hide();
+			}
 		}
 	}
 

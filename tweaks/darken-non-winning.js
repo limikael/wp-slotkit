@@ -9,7 +9,7 @@ game.on("init",function() {
 	console.log("will darken by: "+game.options.darkenNonWinningAmount);
 });
 
-game.on("symbolWinPresentationComplete",function(ev) {
+/*game.on("symbolWinPresentationComplete",function(ev) {
 	ev.symbolSprite.alpha=1;
 });
 
@@ -19,4 +19,16 @@ game.on("symbolWinPresentationWin",function(ev) {
 
 game.on("symbolWinPresentationNoWin",function(ev) {
 	ev.symbolSprite.alpha=1-(game.options.darkenNonWinningAmount/100);
+});*/
+
+game.on("symbolStateChange",function(ev) {
+	switch (ev.state) {
+		case "noWin":
+			ev.symbolSprite.alpha=1-(game.options.darkenNonWinningAmount/100);
+			break;
+
+		default:
+			ev.symbolSprite.alpha=1;
+			break;
+	}
 });

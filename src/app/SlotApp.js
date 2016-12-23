@@ -50,6 +50,10 @@ SlotApp.prototype.onGameModelInit = function() {
 	this.options.tweakApi=this.tweakApi;
 
 	GameView.populateAssetLoader(this.options);
+
+	for (var i=0; i<this.options.assets.length; i++)
+		PIXI.loader.add(this.options.assets[i]);
+
 	PIXI.loader.on("progress", this.onAssetsProgress.bind(this));
 	PIXI.loader.on("error", this.onAssetsError.bind(this));
 	PIXI.loader.load(this.onAssetsLoaded.bind(this));
@@ -87,6 +91,7 @@ SlotApp.prototype.onAssetsLoaded = function() {
 	}
 
 	window.game=this.tweakApi;
+	window.TWEEN=TWEEN;
 
 	var tweakLoader=new BundleLoader();
 	tweakLoader.visible=false;

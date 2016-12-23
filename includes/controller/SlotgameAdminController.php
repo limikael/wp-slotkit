@@ -119,11 +119,33 @@ class SlotgameAdminController extends Singleton {
 		foreach ($tweaks as $tweak)
 			foreach ($tweak->getFieldNames() as $name) {
 				$parameters=$tweak->getFieldParameters($name);
-				$fields[]=array(
+				$fieldEntry=array(
 					"id"=>$name,
 					"name"=>$parameters["label"],
-					"desc"=>$parameters["desc"]
+					"desc"=>$parameters["desc"],
 				);
+
+				$type="text";
+				if (isset($parameters["type"]))
+					$type=$parameters["type"];
+
+				switch ($type) {
+					case "text":
+						$fieldEntry["type"]="text";
+						break;
+
+					case "image":
+						$fieldEntry["type"]="image_advanced";
+						$fieldEntry["max_file_uploads"]=1;
+						$fieldEntry["max_status"]=false;
+						break;
+
+					default:
+						throw new Exception("Unknown tweak parameter type: ".$type);
+						break;
+				}
+
+				$fields[]=$fieldEntry;
 			}
 
 		$metaBoxes[]=array(

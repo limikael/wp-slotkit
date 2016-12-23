@@ -70,34 +70,31 @@ SymbolView.generateSymbolFrameId = function(format, id) {
     return format;
 }
 
-SymbolView.prototype.playNoWin = function() {
+SymbolView.prototype.triggerEvent=function(type, state) {
     var ev={
         symbolSprite: this.symbolSprite,
         reelIndex: this.reelIndex,
-        rowIndex: this.rowIndex
+        rowIndex: this.rowIndex,
+        state: state
     };
 
-    this.options.tweakApi.trigger("symbolWinPresentationNoWin",ev);
+    this.options.tweakApi.trigger(type,ev);
+}
+
+SymbolView.prototype.triggerSymbolStateChange=function(state) {
+    this.triggerEvent("symbolStateChange",state);
+}
+
+SymbolView.prototype.playNoWin = function() {
+    this.triggerSymbolStateChange("noWin");
 }
 
 SymbolView.prototype.winPresentationComplete=function() {
-    var ev={
-        symbolSprite: this.symbolSprite,
-        reelIndex: this.reelIndex,
-        rowIndex: this.rowIndex
-    };
-
-    this.options.tweakApi.trigger("symbolWinPresentationComplete",ev);
+    this.triggerSymbolStateChange("idle");
 }
 
 SymbolView.prototype.playBetLineWin = function() {
-    var ev={
-        symbolSprite: this.symbolSprite,
-        reelIndex: this.reelIndex,
-        rowIndex: this.rowIndex
-    };
-
-    this.options.tweakApi.trigger("symbolWinPresentationWin",ev);
+    this.triggerSymbolStateChange("win");
 
     var thenable = new Thenable();
 
