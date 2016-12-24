@@ -44,7 +44,7 @@ class SlotgameController {
 			),
 			"public"=>true,
 			"has_archive"=>true,
-			"supports"=>array("title","excerpt"),
+			"supports"=>array("title"),
 			"show_in_nav_menus"=>false
 		));
 	}
@@ -85,7 +85,7 @@ class SlotgameController {
 		foreach (Slotgame::findAllPublished() as $slotgame) {
 			$slotgameView=array(
 				"title"=>$slotgame->getPost()->post_title,
-				"description"=>$slotgame->getPost()->post_excerpt,
+				"description"=>$slotgame->getMeta("description"),
 				"image"=>SLOTKIT_URL."/res/slot.jpg",
 				"url"=>get_permalink($slotgame->getId())
 			);

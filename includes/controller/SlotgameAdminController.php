@@ -23,24 +23,16 @@ class SlotgameAdminController extends Singleton {
 	 */
 	public function rwmbMetaBoxes($metaBoxes) {
 		$metaBoxes[]=array(
-			"title"=>"Rules",
+			"title"=>"Slotgame",
 			"post_types"=>"slotgame",
 			"priority"=>"low",
 			"fields"=>array(
 				array(
-	                'id'   => 'rules',
-	                'type' => 'select',
-	                'name' => "Rules",
-	                "options"=>Slotgame::getAvailableRules()
-				)
-			)
-		);
-
-		$metaBoxes[]=array(
-			"title"=>"Listing",
-			"post_types"=>"slotgame",
-			"priority"=>"low",
-			"fields"=>array(
+					"id"=>"description",
+					"name"=>"Description",
+					"type"=>"textarea",
+					"desc"=>"This description will appear in the listing."
+				),
 				array(
 					"id"=>"logoImage",
 					"name"=>"Logo Image",
@@ -49,6 +41,12 @@ class SlotgameAdminController extends Singleton {
 					"max_status"=>false,
 					"desc"=>"This image will appear in the listing."
 				),
+				array(
+	                'id'   => 'rules',
+	                'type' => 'select',
+	                'name' => "Rules",
+	                "options"=>Slotgame::getAvailableRules()
+				)
 			)
 		);
 
