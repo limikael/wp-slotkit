@@ -36,6 +36,9 @@ class Tweak {
 				$params=array();
 				parse_str($t,$params);
 
+				foreach (array_keys($params) as $key)
+					$params[$key]=trim($params[$key]);
+
 				if (!isset($params["name"]))
 					throw new Exception("The parameter needs to have a name");
 
@@ -46,6 +49,26 @@ class Tweak {
 
 				if (!isset($params["type"]))
 					$params["type"]="text";
+
+				switch ($params["type"]) {
+					case 'text':
+						break;
+
+					case "image":
+						break;
+
+					case "number":
+						if (!isset($params["min"]))
+							$params["min"]=0;
+
+						if (!isset($params["max"]))
+							$params["max"]=100;
+						break;
+					
+					default:
+						throw new Exception("Unknown tweak field type: ".$params["type"]);
+						break;
+				}
 
 				//error_log(print_r($r,TRUE));
 

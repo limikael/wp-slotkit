@@ -41,8 +41,6 @@ module.exports = {
 	betLineButtonsTop: 70,
 	betLineButtonsDistance: 35,
 	betLevels: [1, 2, 5, 10, 20, 50, 100],
-	/*	minBet: 1,
-		maxBet: 10,*/
 	betLines: [
 		[1, 1, 1, 1, 1],
 		[0, 0, 0, 0, 0],

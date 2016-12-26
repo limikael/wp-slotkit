@@ -211,6 +211,10 @@ class SlotgameController {
 						$response[$fieldName]=$slotgame->getMeta($fieldName);
 						break;
 
+					case "number":
+						$response[$fieldName]=floatval($slotgame->getMeta($fieldName));
+						break;
+
 					case "image":
 						$id=$slotgame->getMeta($fieldName);
 						$url=wp_get_attachment_url($slotgame->getMeta($fieldName));

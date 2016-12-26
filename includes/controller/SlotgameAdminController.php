@@ -91,6 +91,21 @@ class SlotgameAdminController extends Singleton {
 			)
 		);
 
+/*		$metaBoxes[]=array(
+			"title"=>"Positions",
+			"post_types"=>"slotgame",
+			"priority"=>"low",
+			"fields"=>array(
+				array(
+					"id"=>"spinButtonPosition",
+					"name"=>"Spin Button Position",
+					"type"=>"text",
+					"desc"=>"The position of the spin button.",
+					"placeholder"=>"512, 480"
+				),
+			)
+		);*/
+
 		$tweaks=Tweak::getAll();
 		$tweakOptions=array();
 		foreach ($tweaks as $tweak)
@@ -99,12 +114,9 @@ class SlotgameAdminController extends Singleton {
 		$fields=array();
 		$fields[]=array(
             'id'   => 'tweaks',
-//            'type' => 'select_advanced',
-//            'type' => 'select',
             'type'=>"checkbox_list",
             'name' => "Enabled Tweaks",
             "options"=>$tweakOptions,
-//            "clone"=>TRUE
 			"desc"=>"Select the tweaks the should be enabled for the game."
 		);
 
@@ -138,8 +150,15 @@ class SlotgameAdminController extends Singleton {
 						$fieldEntry["max_status"]=false;
 						break;
 
+					case "number":
+						$fieldEntry["type"]="range";
+						$fieldEntry["min"]=$parameters["min"];
+						$fieldEntry["max"]=$parameters["max"];
+						$fieldEntry["std"]=$parameters["min"]+($parameters["max"]-$parameters["min"])/2;
+						break;
+
 					default:
-						throw new Exception("Unknown tweak parameter type: ".$type);
+						throw new Exception("Unknown tweak parameter type: '".$type."'");
 						break;
 				}
 
