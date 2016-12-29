@@ -3258,8 +3258,8 @@ module.exports = {
 	numReels: 5,
 	numRows: 3,
 	numSymbols: 9,
-	reelSpeed: 1000,
 	numRandomSymbols: 3,
+	extraSymbolRows: 2,
 	reelDelay: 200,
 	spinDuration: 3000,
 	winFieldX: 1024 / 2,
@@ -3271,8 +3271,6 @@ module.exports = {
 	betLineButtonsTop: 70,
 	betLineButtonsDistance: 35,
 	betLevels: [1, 2, 5, 10, 20, 50, 100],
-	/*	minBet: 1,
-		maxBet: 10,*/
 	betLines: [
 		[1, 1, 1, 1, 1],
 		[0, 0, 0, 0, 0],
@@ -5043,6 +5041,17 @@ ReelView.prototype.createSymbolClips = function() {
 
 	for (var i = 0; i < this.options.numRows; i++)
 		this.createSymbolClip(this.options.numRandomSymbols + this.options.numRows + i, this.symbolIds[i]);
+
+	for (var i=0; i<this.options.extraSymbolRows; i++) {
+		this.createSymbolClip(-1-i, this.randomSymbols[this.randomSymbols.length-1-i]);
+		this.createSymbolClip(this.options.numRows*2+this.options.numRandomSymbols+i,
+			this.randomSymbols[i]);
+	}
+
+/*	this.createSymbolClip(-1, this.randomSymbols[this.randomSymbols.length-1]);
+
+
+	this.createSymbolClip(this.options.numRows*2+this.options.numRandomSymbols,this.randomSymbols[0]);*/
 }
 
 ReelView.prototype.clearPosition = function() {

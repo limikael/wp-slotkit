@@ -110,6 +110,12 @@ ReelView.prototype.createSymbolClips = function() {
 
 	for (var i = 0; i < this.options.numRows; i++)
 		this.createSymbolClip(this.options.numRandomSymbols + this.options.numRows + i, this.symbolIds[i]);
+
+	for (var i=0; i<this.options.extraSymbolRows; i++) {
+		this.createSymbolClip(-1-i, this.randomSymbols[this.randomSymbols.length-1-i]);
+		this.createSymbolClip(this.options.numRows*2+this.options.numRandomSymbols+i,
+			this.randomSymbols[i]);
+	}
 }
 
 ReelView.prototype.clearPosition = function() {
