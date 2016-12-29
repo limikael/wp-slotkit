@@ -3260,6 +3260,9 @@ module.exports = {
 	numSymbols: 9,
 	numRandomSymbols: 3,
 	extraSymbolRows: 2,
+	spinTweenStartDuration: 2000,
+	spinTweenSpinDuration: 1000,
+	spinTweenEndDuration: 3000,
 	reelDelay: 200,
 	spinDuration: 3000,
 	winFieldX: 1024 / 2,
@@ -5047,11 +5050,6 @@ ReelView.prototype.createSymbolClips = function() {
 		this.createSymbolClip(this.options.numRows*2+this.options.numRandomSymbols+i,
 			this.randomSymbols[i]);
 	}
-
-/*	this.createSymbolClip(-1, this.randomSymbols[this.randomSymbols.length-1]);
-
-
-	this.createSymbolClip(this.options.numRows*2+this.options.numRandomSymbols,this.randomSymbols[0]);*/
 }
 
 ReelView.prototype.clearPosition = function() {
@@ -5100,7 +5098,7 @@ ReelView.prototype.doStartSpin = function() {
 	this.tween = new TWEEN.Tween(this);
 	this.tween.to({
 		reelOffset: this.getReelClipHeight() / 2
-	}, 1000);
+	}, this.options.spinTweenStartDuration);
 	this.tween.easing(TWEEN.Easing.Back.In);
 	this.tween.onUpdate(function() {
 		this.updateSymbolHolderPosition();
@@ -5123,7 +5121,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween = new TWEEN.Tween(this);
 		this.tween.to({
 			reelOffset: 0
-		}, 1000);
+		}, this.options.spinTweenEndDuration);
 		this.tween.easing(TWEEN.Easing.Elastic.Out);
 		this.tween.onUpdate(function() {
 			this.updateSymbolHolderPosition();
@@ -5142,7 +5140,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween = new TWEEN.Tween(this);
 		this.tween.to({
 			reelOffset: this.getReelClipHeight() / 2
-		}, 350);
+		}, this.options.spinTweenSpinDuration);
 		this.tween.onUpdate(function() {
 			this.updateSymbolHolderPosition();
 		}.bind(this));

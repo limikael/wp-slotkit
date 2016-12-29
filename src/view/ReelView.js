@@ -164,7 +164,7 @@ ReelView.prototype.doStartSpin = function() {
 	this.tween = new TWEEN.Tween(this);
 	this.tween.to({
 		reelOffset: this.getReelClipHeight() / 2
-	}, 1000);
+	}, this.options.spinTweenStartDuration);
 	this.tween.easing(TWEEN.Easing.Back.In);
 	this.tween.onUpdate(function() {
 		this.updateSymbolHolderPosition();
@@ -187,7 +187,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween = new TWEEN.Tween(this);
 		this.tween.to({
 			reelOffset: 0
-		}, 1000);
+		}, this.options.spinTweenEndDuration);
 		this.tween.easing(TWEEN.Easing.Elastic.Out);
 		this.tween.onUpdate(function() {
 			this.updateSymbolHolderPosition();
@@ -206,7 +206,7 @@ ReelView.prototype.playSpinTween = function() {
 		this.tween = new TWEEN.Tween(this);
 		this.tween.to({
 			reelOffset: this.getReelClipHeight() / 2
-		}, 350);
+		}, this.options.spinTweenSpinDuration);
 		this.tween.onUpdate(function() {
 			this.updateSymbolHolderPosition();
 		}.bind(this));
