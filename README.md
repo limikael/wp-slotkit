@@ -30,3 +30,5 @@ game.on("symbolStateChange",function(ev) {
 ```
 
 ## Player accounts
+
+The user management system built into WordPress is used to maintain the player accounts. However, WordPress has no mechanism for letting users deposit and withdraw funds from their account. If the [wp-crypto-accounts](https://github.com/limikael/wp-crypto-accounts) is installed alongsite this plugin, then this will be detected by this plugin, and users can deposit and play with Bitcoins. If the wp-crypto-accounts plugin is not installed, it will still be possible to test the games, but only with playmoney. The mechanism where wp-slotkit detects available currencies is extensible, so it is relativly easy to hook into other new or existing systems.
